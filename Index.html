@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classic Physique Cutting Blueprint</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #1E1E1E;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            border-top: 5px solid #2196F3;
+        }
+        .accent-text {
+            color: #2196F3;
+        }
+        .stat-number {
+            color: #4CAF50;
+            line-height: 1.1;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .flow-node {
+            background-color: #E3F2FD;
+            border: 2px solid #2196F3;
+            color: #1E1E1E;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+            position: relative;
+            text-align: center;
+        }
+        .flow-arrow {
+            color: #2196F3;
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+    
+    <script>
+        const chartData = {
+            totalCalories: 2400,
+            targetProtein: 250,
+            targetCarbs: 220,
+            targetFat: 65,
+            
+            macroLabels: ['Protein (42%)', 'Carbohydrates (37%)', 'Fats (21%)'],
+            macroPercentages: [42, 37, 21],
+            
+            mealLabels: ['Meal 1: Quick Protein', 'Meal 2: Lean Mass', 'Meal 3: Sustained Energy', 'Meal 4: Pre-Workout Fuel', 'Meal 5: Post-Workout Recovery', 'Meal 6: Slow Digest'],
+            mealCalories: [350, 300, 450, 300, 600, 400],
+            
+            proteinSources: [
+                { source: 'Lean Meats & Fish', grams: 140, color: '#2196F3' },
+                { source: 'Dairy & Eggs', grams: 65, color: '#4CAF50' },
+                { source: 'Supplements (Whey/Casein)', grams: 45, color: '#FF9800' }
+            ],
+            
+            chartColors: ['#2196F3', '#4CAF50', '#FF9800', '#03A9F4', '#8BC34A', '#FFC107'],
+        };
+
+        function processLabel(label) {
+            if (label.length <= 16) return label;
+            const words = label.split(' ');
+            let lines = [];
+            let currentLine = '';
+            words.forEach(word => {
+                if ((currentLine + ' ' + word).length > 16 && currentLine.length > 0) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    currentLine = currentLine ? currentLine + ' ' + word : word;
+                }
+            });
+            if (currentLine) lines.push(currentLine);
+            return lines;
+        }
+
+        const sharedTooltipConfig = {
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            if (Array.isArray(label)) {
+                              return label.join(' ');
+                            } else {
+                              return label;
+                            }
+                        }
+                    }
+                }
+            },
+            responsive: true,
+            maintainAspectRatio: false
+        };
+
+        function renderMacroDonutChart() {
+            const ctx = document.getElementById('macroDonutChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartData.macroLabels.map(processLabel),
+                    datasets: [{
+                        data: chartData.macroPercentages,
+                        backgroundColor: chartData.chartColors.slice(0, 3),
+                        hoverOffset: 15,
+                    }]
+                },
+                options: {
+                    ...sharedTooltipConfig,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        ...sharedTooltipConfig.plugins
+                    }
+                }
+            });
+        }
+
+        function renderCalorieLineChart() {
+            const ctx = document.getElementById('calorieLineChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.mealLabels.map(processLabel),
+                    datasets: [{
+                        label: 'Calories Per Meal (Target: 2400 Total)',
+                        data: chartData.mealCalories,
+                        borderColor: '#2196F3',
+                        backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#4CAF50'
+                    }]
+                },
+                options: {
+                    ...sharedTooltipConfig,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Calories (kcal)', color: '#1E1E1E' } },
+                        x: { title: { display: true, text: 'Meal Timing', color: '#1E1E1E' } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        ...sharedTooltipConfig.plugins
+                    }
+                }
+            });
+        }
+
+        function renderProteinBarChart() {
+            const ctx = document.getElementById('proteinBarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.proteinSources.map(d => d.source).map(processLabel),
+                    datasets: [{
+                        label: 'Protein (Grams)',
+                        data: chartData.proteinSources.map(d => d.grams),
+                        backgroundColor: chartData.proteinSources.map(d => d.color),
+                    }]
+                },
+                options: {
+                    ...sharedTooltipConfig,
+                    indexAxis: 'y',
+                    scales: {
+                        x: { beginAtZero: true, title: { display: true, text: 'Grams of Protein', color: '#1E1E1E' } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        ...sharedTooltipConfig.plugins
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMacroDonutChart();
+            renderCalorieLineChart();
+            renderProteinBarChart();
+        });
+    </script>
+
+    <div class="max-w-7xl mx-auto">
+
+        <header class="text-center mb-12">
+            <h1 class="text-5xl md:text-6xl font-extrabold accent-text leading-tight">The Aesthetic Cut Protocol</h1>
+            <p class="text-xl md:text-2xl text-gray-600 mt-3">Classic Physique Nutrition Blueprint for Definition and V-Taper</p>
+        </header>
+
+        <section id="kpis" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            
+            <div class="card p-6 text-center">
+                <h2 class="text-sm uppercase font-bold text-gray-500 mb-2">Daily Calorie Target</h2>
+                <div class="stat-number text-6xl font-black">2400</div>
+                <p class="text-gray-700 mt-2 font-semibold">kcal</p>
+            </div>
+
+            <div class="card p-6 text-center">
+                <h2 class="text-sm uppercase font-bold text-gray-500 mb-2">Protein Intake (Minimum)</h2>
+                <div class="stat-number text-6xl font-black">250</div>
+                <p class="text-gray-700 mt-2 font-semibold">grams / 42%</p>
+            </div>
+
+            <div class="card p-6 text-center">
+                <h2 class="text-sm uppercase font-bold text-gray-500 mb-2">Carbohydrate Cycling</h2>
+                <div class="stat-number text-6xl font-black">220</div>
+                <p class="text-gray-700 mt-2 font-semibold">grams / 37%</p>
+            </div>
+            
+        </section>
+
+        <section id="macro-composition" class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            
+            <div class="lg:col-span-1 card">
+                <h2 class="text-2xl font-bold accent-text mb-4">Macro Composition Overview</h2>
+                <p class="text-gray-700 mb-6">The Classic Physique approach utilizes a high-protein, moderate-carb, and low-fat split. This is essential for **muscle sparing** during a caloric deficit while driving fat oxidation.</p>
+                <div class="chart-container h-[350px]">
+                    <canvas id="macroDonutChart"></canvas>
+                </div>
+                <p class="text-sm text-gray-500 mt-4 text-center">Breakdown: P (42%) C (37%) F (21%)</p>
+            </div>
+
+            <div class="lg:col-span-2 card">
+                <h2 class="text-2xl font-bold accent-text mb-4">Calorie Distribution Across 6 Meals</h2>
+                <p class="text-gray-700 mb-6">Calories are strategically front-loaded for sustained energy but **peak around the training window** (Meal 5) to maximize recovery and nutrient uptake. The final meal is slow-digesting.</p>
+                <div class="chart-container h-[400px] max-w-full">
+                    <canvas id="calorieLineChart"></canvas>
+                </div>
+            </div>
+            
+        </section>
+        
+        <section id="detailed-analysis" class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+
+            <div class="lg:col-span-1 card">
+                <h2 class="text-2xl font-bold accent-text mb-4">Key Protein Source Breakdown</h2>
+                <p class="text-gray-700 mb-6">Protein intake is diversified to ensure a complete amino acid profile. **Lean Meats** account for the largest proportion, providing dense, high-quality sources.</p>
+                <div class="chart-container h-[300px]">
+                    <canvas id="proteinBarChart"></canvas>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 card">
+                <h2 class="text-2xl font-bold accent-text mb-4">Nutrient Timing & Purpose Flow</h2>
+                <p class="text-gray-700 mb-6">Each of the 6 meals serves a specific function within the 15-hour eating window, ensuring energy availability when needed and slow-release fuel during fasting/sleep.</p>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="flow-node">
+                        <div class="text-lg font-bold">M1 & M2 (AM)</div>
+                        <div class="text-sm mt-1 text-gray-600">High-Protein, Moderate Carb. <span class="font-semibold">Goal: Stop Catabolism, Start Day.</span></div>
+                    </div>
+                    <div class="col-span-1 flex justify-center items-center flow-arrow">&rarr;</div>
+                    <div class="flow-node">
+                        <div class="text-lg font-bold">M3 (Mid-Day)</div>
+                        <div class="text-sm mt-1 text-gray-600">Balanced P/C/F. <span class="font-semibold">Goal: Sustained Energy, Fiber Intake.</span></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 mt-4">
+                    <div class="col-span-1 flex justify-center items-center flow-arrow">&darr;</div>
+                    <div class="col-span-1"></div>
+                    <div class="col-span-1 flex justify-center items-center flow-arrow">&darr;</div>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-4 mt-4">
+                    <div class="flow-node">
+                        <div class="text-lg font-bold">M6 (Late Night)</div>
+                        <div class="text-sm mt-1 text-gray-600">Casein & Healthy Fats. <span class="font-semibold">Goal: Anti-Catabolic, Slow Release.</span></div>
+                    </div>
+                    <div class="col-span-1 flex justify-center items-center flow-arrow">&larr;</div>
+                    <div class="flow-node">
+                        <div class="text-lg font-bold">M4 & M5 (P/W)</div>
+                        <div class="text-sm mt-1 text-gray-600">Highest Calories/Carbs. <span class="font-semibold">Goal: Glycogen Replenishment & Recovery.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+        </section>
+
+        <section id="principles" class="mb-12">
+            <h2 class="text-3xl font-bold accent-text mb-6 text-center">Non-Negotiable Principles of the Cut</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <div class="card p-6 bg-gray-50 border-t-4 border-t-[#4CAF50]">
+                    <div class="flex items-center mb-3">
+                        <span class="text-2xl font-black text-[#4CAF50] mr-3">&#9733;</span>
+                        <h3 class="text-xl font-semibold">Hyper-Hydration</h3>
+                    </div>
+                    <p class="text-gray-700 text-sm">Target 1.5 - 2 Gallons of water daily. This maximizes fat metabolism, reduces water retention, and maintains muscle fullness, which is critical for the "dry" look.</p>
+                </div>
+
+                <div class="card p-6 bg-gray-50 border-t-4 border-t-[#4CAF50]">
+                    <div class="flex items-center mb-3">
+                        <span class="text-2xl font-black text-[#4CAF50] mr-3">&#9733;</span>
+                        <h3 class="text-xl font-semibold">Micro-Nutrient Density</h3>
+                    </div>
+                    <p class="text-gray-700 text-sm">Prioritize green, fibrous vegetables like asparagus and broccoli at every main meal. These provide bulk, satiety, and essential vitamins with minimal caloric impact.</p>
+                </div>
+
+                <div class="card p-6 bg-gray-50 border-t-4 border-t-[#4CAF50]">
+                    <div class="flex items-center mb-3">
+                        <span class="text-2xl font-black text-[#4CAF50] mr-3">&#9733;</span>
+                        <h3 class="text-xl font-semibold">Strict Meal Adherence</h3>
+                    </div>
+                    <p class="text-gray-700 text-sm">The plan is set for 6 meals to manage hunger and maintain a steady metabolism. **Prep 3 days in advance** to eliminate decision fatigue and ensure consistency.</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>
