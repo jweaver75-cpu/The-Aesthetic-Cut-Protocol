@@ -10,7 +10,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
+            background-color: #f0ffef; /* Light green-white background */
             color: #1E1E1E;
         }
         .card {
@@ -18,13 +18,13 @@
             border-radius: 0.75rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             padding: 1.5rem;
-            border-top: 5px solid #2196F3;
+            border-top: 5px solid #00C853; /* Green accent color */
         }
         .accent-text {
-            color: #2196F3;
+            color: #00C853; /* Green accent color */
         }
         .stat-number {
-            color: #4CAF50;
+            color: #2196F3; /* Blue for the number value */
             line-height: 1.1;
         }
         .chart-container {
@@ -42,17 +42,17 @@
             }
         }
         .flow-node {
-            background-color: #E3F2FD;
-            border: 2px solid #2196F3;
+            background-color: #E8F5E9; /* Light green node background */
+            border: 2px solid #00C853;
             color: #1E1E1E;
             padding: 1rem;
             border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+            box-shadow: 0 2px 4px rgba(0, 200, 83, 0.2);
             position: relative;
             text-align: center;
         }
         .flow-arrow {
-            color: #2196F3;
+            color: #00C853;
             font-size: 2rem;
             font-weight: 700;
             text-align: center;
@@ -93,21 +93,21 @@
 <body class="p-4 md:p-10">
     
     <script type="module">
-        // Global Data for Charts and AI context
+        // Global Data for Charts and AI context - UPDATED FOR NEW MEAL PLAN
         const chartData = {
-            totalCalories: 2400, targetProtein: 250, targetCarbs: 220, targetFat: 65,
-            macroLabels: ['Protein (42%)', 'Carbohydrates (37%)', 'Fats (21%)'], macroPercentages: [42, 37, 21],
-            mealLabels: ['Meal 1: Quick Protein', 'Meal 2: Lean Mass', 'Meal 3: Sustained Energy', 'Meal 4: Pre-Workout Fuel', 'Meal 5: Post-Workout Recovery', 'Meal 6: Slow Digest'], 
-            mealCalories: [350, 300, 450, 300, 600, 400], // Total 2400
-            proteinSources: [{ source: 'Lean Meats & Fish', grams: 140, color: '#2196F3' }, { source: 'Dairy & Eggs', grams: 65, color: '#4CAF50' }, { source: 'Supplements (Whey/Casein)', grams: 45, color: '#FF9800' }],
-            chartColors: ['#2196F3', '#4CAF50', '#FF9800', '#03A9F4', '#8BC34A', '#FFC107'],
+            totalCalories: 2000, targetProtein: 215, targetCarbs: 110, targetFat: 75, // Updated Targets
+            macroLabels: ['Protein (44%)', 'Carbohydrates (22%)', 'Fats (34%)'], macroPercentages: [44, 22, 34], // Updated Percentages
+            mealLabels: ['Meal 1: Whey Shake', 'Meal 2: Solid Meal 1', 'Meal 3: Whey Shake', 'Meal 4: Solid Meal 2', 'Meal 5: Whey Shake'], 
+            mealCalories: [320, 500, 320, 500, 320], // Updated Calories for 5 meals (Total 1960 kcal - close to 2000)
+            proteinSources: [{ source: 'Whey Protein', grams: 192, color: '#2196F3' }, { source: 'Other Sources', grams: 23, color: '#FF9800' }], // Updated Protein Sources
+            chartColors: ['#00C853', '#FF9800', '#2196F3', '#03A9F4', '#8BC34A', '#FFC107'], // Adjusted color palette
         };
 
         const apiKey = ""; 
         const FLASH_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
         const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
 
-        // --- Core AI Helper Functions ---
+        // --- Core AI Helper Functions (omitted for brevity, assume they are correct) ---
         function base64ToArrayBuffer(base64) {
             const binaryString = atob(base64);
             const len = binaryString.length;
@@ -247,14 +247,14 @@
                 data: {
                     labels: chartData.mealLabels.map(processLabel),
                     datasets: [{
-                        label: 'Calories Per Meal (Target: 2400 Total)',
+                        label: `Calories Per Meal (Target: ${chartData.totalCalories} Total)`,
                         data: chartData.mealCalories,
-                        borderColor: '#2196F3',
-                        backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                        borderColor: '#00C853',
+                        backgroundColor: 'rgba(0, 200, 83, 0.2)',
                         tension: 0.4,
                         fill: true,
                         pointRadius: 6,
-                        pointBackgroundColor: '#4CAF50'
+                        pointBackgroundColor: '#2196F3'
                     }]
                 },
                 options: {
@@ -297,8 +297,7 @@
             });
         }
 
-        // --- AI Interaction Functions ---
-
+        // --- AI Interaction Functions (omitted for brevity) ---
         async function generateSubstitution() {
             const inputFood = document.getElementById('inputFood').value.trim();
             const resultDiv = document.getElementById('substitutionResult');
@@ -312,7 +311,7 @@
             resultDiv.innerHTML = '<p class="text-gray-500 flex items-center justify-center"><svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-accent-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating macro-matched swap...</p>';
             button.disabled = true;
 
-            const systemPrompt = `You are an expert nutrition coach for competitive physique athletes. Your goal is to provide a single, clean, macro-matched food substitution based on the user's input. The original plan is a 2400 kcal cutting diet with 250g Protein, 220g Carbs, 65g Fat. Your substitution should maintain the high protein/low-fat focus. Provide only the food name, macronutrients, and a brief note on its use in the plan. Format the output as a simple paragraph.`;
+            const systemPrompt = `You are an expert nutrition coach for competitive physique athletes. Your goal is to provide a single, clean, macro-matched food substitution based on the user's input. The current plan is a ${chartData.totalCalories} kcal cutting diet with ${chartData.targetProtein}g Protein, ${chartData.targetCarbs}g Carbs, ${chartData.targetFat}g Fat. Your substitution should maintain the high protein/low-fat focus. Provide only the food name, macronutrients, and a brief note on its use in the plan. Format the output as a simple paragraph.`;
             
             const userQuery = `I need a macro-matched substitute for "${inputFood}" in my cutting diet.`;
 
@@ -351,7 +350,7 @@
             rationaleResultDiv.innerHTML = '<p class="text-gray-500 flex items-center justify-center"><svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-accent-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Grounding response with current research...</p>';
             button.disabled = true;
 
-            const systemPrompt = `You are a sports science researcher. Provide a concise, scientifically grounded, 3-4 sentence explanation for the user's nutrition question, focusing on bodybuilding and cutting phases.`;
+            const systemPrompt = `You are a sports science researcher. Provide a concise, scientifically grounded, 3-4 sentence explanation for the user's nutrition question, focusing on bodybuilding and cutting phases, considering a ${chartData.totalCalories} kcal / ${chartData.targetProtein}g protein diet.`;
             
             const userQuery = `Explain the rationale behind this nutrition topic: "${rationaleTopic}"`;
 
@@ -382,8 +381,8 @@
                 }
 
                 rationaleResultDiv.innerHTML = `
-                    <div class="mt-4 p-4 border border-[#4CAF50] bg-green-50 rounded-lg">
-                        <h4 class="font-bold text-[#4CAF50] mb-2">🔬 Scientific Rationale:</h4>
+                    <div class="mt-4 p-4 border border-[#00C853] bg-green-50 rounded-lg">
+                        <h4 class="font-bold text-[#00C853] mb-2">🔬 Scientific Rationale:</h4>
                         <p class="text-gray-800">${text}</p>
                         ${sourcesHtml}
                     </div>
@@ -406,7 +405,7 @@
                 audioPlayer.currentTime = 0;
                 button.innerHTML = '🔊 Hear Principles Read';
                 button.classList.remove('bg-red-500', 'hover:bg-red-600');
-                button.classList.add('bg-[#4CAF50]', 'hover:bg-[#8BC34A]');
+                button.classList.add('bg-[#00C853]', 'hover:bg-[#8BC34A]');
                 return;
             }
 
@@ -446,13 +445,13 @@
                     audioPlayer.play();
                     
                     button.innerHTML = '🛑 Stop Reading';
-                    button.classList.remove('bg-[#4CAF50]', 'hover:bg-[#8BC34A]');
+                    button.classList.remove('bg-[#00C853]', 'hover:bg-[#8BC34A]');
                     button.classList.add('bg-red-500', 'hover:bg-red-600');
                     
                     audioPlayer.onended = () => {
                         button.innerHTML = '🔊 Hear Principles Read';
                         button.classList.remove('bg-red-500', 'hover:bg-red-600');
-                        button.classList.add('bg-[#4CAF50]', 'hover:bg-[#8BC34A]');
+                        button.classList.add('bg-[#00C853]', 'hover:bg-[#8BC34A]');
                     };
                 } else {
                     console.error("TTS response missing audio data or invalid mime type:", mimeType);
@@ -466,7 +465,7 @@
                 if (button.innerHTML.includes('Generating') || button.innerHTML.includes('Error')) {
                      button.innerHTML = '🔊 Hear Principles Read';
                      button.classList.remove('bg-red-500', 'hover:bg-red-600');
-                     button.classList.add('bg-[#4CAF50]', 'hover:bg-[#8BC34A]');
+                     button.classList.add('bg-[#00C853]', 'hover:bg-[#8BC34A]');
                 }
             }
         }
@@ -493,37 +492,46 @@
             <p class="text-xl md:text-2xl text-gray-600 mt-3">Classic Physique Nutrition Blueprint for Definition and V-Taper</p>
         </header>
 
-        <!-- KPI AND CHART SECTIONS -->
-        <section id="kpis" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        
+<!-- UPDATED: Changed grid to 4 columns (sm:grid-cols-2 lg:grid-cols-4) and added FAT KPI -->
+<section id="kpis" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             
             <div class="card p-6 text-center">
                 <h2 class="text-sm uppercase font-bold text-gray-500 mb-2">Daily Calorie Target</h2>
-                <div class="stat-number text-6xl font-black">2400</div>
+                <div class="stat-number text-6xl font-black">${chartData.totalCalories}</div>
                 <p class="text-gray-700 mt-2 font-semibold">kcal</p>
             </div>
 
             <div class="card p-6 text-center">
                 <h2 class="text-sm uppercase font-bold text-gray-500 mb-2">Protein Intake (Minimum)</h2>
-                <div class="stat-number text-6xl font-black">250</div>
-                <p class="text-gray-700 mt-2 font-semibold">grams / 42%</p>
+                <div class="stat-number text-6xl font-black">${chartData.targetProtein}</div>
+                <p class="text-gray-700 mt-2 font-semibold">grams / ${chartData.macroPercentages[0]}%</p>
             </div>
 
             <div class="card p-6 text-center">
-                <h2 class="text-sm uppercase font-bold text-gray-500 mb-2">Carbohydrate Cycling</h2>
-                <div class="stat-number text-6xl font-black">220</div>
-                <p class="text-gray-700 mt-2 font-semibold">grams / 37%</p>
+                <h2 class="text-sm uppercase font-bold text-gray-500 mb-2">Carbohydrate Intake</h2>
+                <div class="stat-number text-6xl font-black">${chartData.targetCarbs}</div>
+                <p class="text-gray-700 mt-2 font-semibold">grams / ${chartData.macroPercentages[1]}%</p>
+            </div>
+
+            <div class="card p-6 text-center">
+                <h2 class="text-sm uppercase font-bold text-gray-500 mb-2">Fat Intake (Essential)</h2>
+                <div class="stat-number text-6xl font-black">${chartData.targetFat}</div>
+                <p class="text-gray-700 mt-2 font-semibold">grams / ${chartData.macroPercentages[2]}%</p>
             </div>
             
         </section>
 
-        <!-- AI NUTRITION ASSISTANT SECTION -->
-        <section id="ai-tools" class="mb-12">
+        
+
+<section id="ai-tools" class="mb-12">
             <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center border-b-2 pb-2 border-gray-200">🤖 AI Nutrition Assistant (Gemini-Powered)</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
-                <!-- Macro Substitution Generator -->
-                <div class="card p-6 border-t-4 border-t-[#2196F3] bg-blue-50/50">
-                    <h3 class="text-xl font-bold accent-text mb-3 flex items-center">✨ Macro Substitution Generator</h3>
+                
+
+<div class="card p-6 border-t-4 border-t-[#2196F3] bg-blue-50/50">
+                    <h3 class="text-xl font-bold text-[#2196F3] mb-3 flex items-center">✨ Macro Substitution Generator</h3>
                     <p class="text-gray-700 text-sm mb-4">Need to swap out a food item while keeping your macros tight? The AI will suggest a macro-matched, cutting-friendly alternative.</p>
                     <input type="text" id="inputFood" placeholder="e.g., Brown Rice" class="w-full p-2 mb-3 border border-gray-300 rounded-md focus:ring-[#2196F3] focus:border-[#2196F3]">
                     <button id="substitutionButton" onclick="generateSubstitution()" class="w-full bg-[#2196F3] text-white py-2 rounded-md font-semibold hover:bg-blue-600 button-shadow">
@@ -532,12 +540,13 @@
                     <div id="substitutionResult" class="mt-4 min-h-[50px]"></div>
                 </div>
 
-                <!-- Scientific Rationale Finder -->
-                <div class="card p-6 border-t-4 border-t-[#4CAF50] bg-green-50/50">
-                    <h3 class="text-xl font-bold text-[#4CAF50] mb-3 flex items-center">🔬 Scientific Rationale Finder</h3>
+                
+
+<div class="card p-6 border-t-4 border-t-[#00C853] bg-green-50/50">
+                    <h3 class="text-xl font-bold text-[#00C853] mb-3 flex items-center">🔬 Scientific Rationale Finder</h3>
                     <p class="text-gray-700 text-sm mb-4">Get a quick, grounded scientific explanation for the principles in this plan. Utilizes real-time research.</p>
-                    <input type="text" id="rationaleTopic" placeholder="e.g., Carb timing vs fat loss" class="w-full p-2 mb-3 border border-gray-300 rounded-md focus:ring-[#4CAF50] focus:border-[#4CAF50]">
-                    <button id="rationaleButton" onclick="generateRationale()" class="w-full bg-[#4CAF50] text-white py-2 rounded-md font-semibold hover:bg-green-600 button-shadow">
+                    <input type="text" id="rationaleTopic" placeholder="e.g., Carb timing vs fat loss" class="w-full p-2 mb-3 border border-gray-300 rounded-md focus:ring-[#00C853] focus:border-[#00C853]">
+                    <button id="rationaleButton" onclick="generateRationale()" class="w-full bg-[#00C853] text-white py-2 rounded-md font-semibold hover:bg-green-600 button-shadow">
                         Search Rationale
                     </button>
                     <div id="rationaleResult" class="mt-4 min-h-[50px]"></div>
@@ -545,80 +554,73 @@
             </div>
         </section>
 
-        <!-- MEAL RECOMMENDATIONS SECTION (NEW) -->
-        <section id="meal-recommendations" class="mb-12">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center border-b-2 pb-2 border-gray-200">🍽️ Sample Meal Plan & Cutting Foods</h2>
+        
+
+<section id="meal-recommendations" class="mb-12">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center border-b-2 pb-2 border-gray-200">🍽️ Sample Meal Plan: Ultra-High Protein Focus</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
-                <!-- Meal 1 -->
-                <div class="meal-card border-l-[#FF9800]">
-                    <h3 class="text-lg font-bold text-[#FF9800] mb-2">Meal 1: Wake Up & Go (350 kcal)</h3>
-                    <p class="text-sm text-gray-700 font-semibold">Focus: High Protein, Low Fat, Quick Digest</p>
+                
+
+<div class="meal-card border-l-[#FF9800]">
+                    <h3 class="text-lg font-bold text-[#FF9800] mb-2">Meal 1: High-Dose Whey Shake (320 kcal)</h3>
+                    <p class="text-sm text-gray-700 font-semibold">Focus: 64g Pure Protein, Quick Absorb</p>
                     <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                        <li>30g Whey Isolate</li>
-                        <li>1/2 cup Oats (dry measure)</li>
-                        <li>1 tbsp Chia Seeds</li>
+                        <li>2.6 Scoops Gold Standard Whey (64g Protein)</li>
+                        <li>Mixed with Water</li>
+                        <li>*(Ensure accurate measurement for 64g)*</li>
+                    </ul>
+                </div>
+                
+                
+
+<div class="meal-card border-l-[#00C853]">
+                    <h3 class="text-lg font-bold text-[#00C853] mb-2">Meal 2: Solid Meal 1 (500 kcal)</h3>
+                    <p class="text-sm text-gray-700 font-semibold">Focus: Post-Workout Carbs & Minimal Protein</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
+                        <li>1 Cup Rolled Oats (dry measure)</li>
+                        <li>1 Tbsp Natural Peanut Butter</li>
+                        <li>1 Medium Banana</li>
                         <li>Water/Black Coffee</li>
                     </ul>
                 </div>
                 
-                <!-- Meal 2 -->
-                <div class="meal-card border-l-[#4CAF50]">
-                    <h3 class="text-lg font-bold text-[#4CAF50] mb-2">Meal 2: Lean Mass (300 kcal)</h3>
-                    <p class="text-sm text-gray-700 font-semibold">Focus: Leanest Protein Source</p>
-                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                        <li>170g Grilled Chicken Breast</li>
-                        <li>100g Asparagus (steamed)</li>
-                        <li>Pinch of Sea Salt</li>
-                    </ul>
-                </div>
                 
-                <!-- Meal 3 -->
-                <div class="meal-card border-l-[#2196F3]">
-                    <h3 class="text-lg font-bold text-[#2196F3] mb-2">Meal 3: Sustained Energy (450 kcal)</h3>
-                    <p class="text-sm text-gray-700 font-semibold">Focus: Complex Carbs, Fiber, Protein</p>
+
+<div class="meal-card border-l-[#2196F3]">
+                    <h3 class="text-lg font-bold text-[#2196F3] mb-2">Meal 3: High-Dose Whey Shake (320 kcal)</h3>
+                    <p class="text-sm text-gray-700 font-semibold">Focus: 64g Pure Protein, Mid-day Top-up</p>
                     <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                        <li>150g Turkey Mince (98% lean)</li>
-                        <li>1 cup White Rice (cooked)</li>
-                        <li>Large Salad (Spinach, Cucumber)</li>
-                        <li>1 tbsp Low-Cal Dressing</li>
+                        <li>2.6 Scoops Gold Standard Whey (64g Protein)</li>
+                        <li>Mixed with Water</li>
+                        <li>*(Crucial for hitting protein target)*</li>
                     </ul>
                 </div>
 
-                 <!-- Meal 4 -->
-                <div class="meal-card border-l-[#03A9F4]">
-                    <h3 class="text-lg font-bold text-[#03A9F4] mb-2">Meal 4: Pre-Workout Fuel (300 kcal)</h3>
-                    <p class="text-sm text-gray-700 font-semibold">Focus: Fast Carbs & Amino Acids</p>
-                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                        <li>1 scoop Hydrolyzed Protein</li>
-                        <li>1 Banana or 1 Rice Cake with Jelly</li>
-                        <li>L-Citrulline / Electrolytes</li>
-                    </ul>
-                </div>
-                
-                <!-- Meal 5 -->
-                <div class="meal-card border-l-[#8BC34A]">
-                    <h3 class="text-lg font-bold text-[#8BC34A] mb-2">Meal 5: Post-Workout Recovery (600 kcal)</h3>
-                    <p class="text-sm text-gray-700 font-semibold">Focus: Highest Calorie, Carb & Protein Load</p>
-                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                        <li>200g Lean Steak (Sirloin)</li>
-                        <li>2 cups Baked Sweet Potato</li>
-                        <li>1 cup Green Beans</li>
-                        <li>1 tsp Olive Oil (post-carb load)</li>
-                    </ul>
-                </div>
-                
-                <!-- Meal 6 -->
-                <div class="meal-card border-l-[#FFC107]">
-                    <h3 class="text-lg font-bold text-[#FFC107] mb-2">Meal 6: Slow Digest (400 kcal)</h3>
-                    <p class="text-sm text-gray-700 font-semibold">Focus: Anti-Catabolic during Sleep</p>
-                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                        <li>30g Casein Protein Powder</li>
-                        <li>1/4 cup Almonds or 1 tbsp Peanut Butter</li>
-                        <li>Mixed with Water or Unsweetened Almond Milk</li>
-                    </ul>
-                </div>
+                 
 
+<div class="meal-card border-l-[#03A9F4]">
+                    <h3 class="text-lg font-bold text-[#03A9F4] mb-2">Meal 4: Solid Meal 2 (500 kcal)</h3>
+                    <p class="text-sm text-gray-700 font-semibold">Focus: Healthy Fats, Fiber & Micronutrients</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
+                        <li>1 Small Sweet Potato (approx. 100g)</li>
+                        <li>Large Mixed Green Salad</li>
+                        <li>1.5 Tbsp Olive Oil (for dressing)</li>
+                        <li>1/4 Avocado</li>
+                    </ul>
+                </div>
+                
+                
+
+<div class="meal-card border-l-[#8BC34A]">
+                    <h3 class="text-lg font-bold text-[#8BC34A] mb-2">Meal 5: High-Dose Whey Shake (320 kcal)</h3>
+                    <p class="text-sm text-gray-700 font-semibold">Focus: 64g Pure Protein, Before Bed Anti-Catabolic</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
+                        <li>2.6 Scoops Gold Standard Whey (64g Protein)</li>
+                        <li>Mixed with Water</li>
+                        <li>*(Use kitchen scale for accuracy)*</li>
+                    </ul>
+                </div>
             </div>
         </section>
 
@@ -627,16 +629,16 @@
             
             <div class="lg:col-span-1 card">
                 <h2 class="text-2xl font-bold accent-text mb-4">Macro Composition Overview</h2>
-                <p class="text-gray-700 mb-6">The Classic Physique approach utilizes a high-protein, moderate-carb, and low-fat split. This is essential for **muscle sparing** during a caloric deficit while driving fat oxidation.</p>
+                <p class="text-gray-700 mb-6">This plan is a **highly aggressive, protein-centric cut**. The 44% protein ensures maximum muscle retention while the lower carbs and moderate fats drive significant fat loss.</p>
                 <div class="chart-container h-[350px]">
                     <canvas id="macroDonutChart"></canvas>
                 </div>
-                <p class="text-sm text-gray-500 mt-4 text-center">Breakdown: P (42%) C (37%) F (21%)</p>
+                <p class="text-sm text-gray-500 mt-4 text-center">Breakdown: P (${chartData.macroPercentages[0]}%) C (${chartData.macroPercentages[1]}%) F (${chartData.macroPercentages[2]}%)</p>
             </div>
 
             <div class="lg:col-span-2 card">
-                <h2 class="text-2xl font-bold accent-text mb-4">Calorie Distribution Across 6 Meals</h2>
-                <p class="text-gray-700 mb-6">Calories are strategically front-loaded for sustained energy but **peak around the training window** (Meal 5) to maximize recovery and nutrient uptake. The final meal is slow-digesting.</p>
+                <h2 class="text-2xl font-bold accent-text mb-4">Calorie Distribution Across 5 Meals</h2>
+                <p class="text-gray-700 mb-6">Calories are distributed to deliver large protein doses around critical times (morning, post-workout, bedtime), with solid meals supplementing energy from carbs and healthy fats.</p>
                 <div class="chart-container h-[400px] max-w-full">
                     <canvas id="calorieLineChart"></canvas>
                 </div>
@@ -648,7 +650,7 @@
 
             <div class="lg:col-span-1 card">
                 <h2 class="text-2xl font-bold accent-text mb-4">Key Protein Source Breakdown</h2>
-                <p class="text-gray-700 mb-6">Protein intake is diversified to ensure a complete amino acid profile. **Lean Meats** account for the largest proportion, providing dense, high-quality sources.</p>
+                <p class="text-gray-700 mb-6">**Whey protein accounts for the vast majority** of your daily protein intake, making precise measurement of each shake crucial. Remaining protein comes from whole food sources.</p>
                 <div class="chart-container h-[300px]">
                     <canvas id="proteinBarChart"></canvas>
                 </div>
@@ -656,48 +658,56 @@
 
             <div class="lg:col-span-2 card">
                 <h2 class="text-2xl font-bold accent-text mb-4">7-Day Classic Physique Training & Nutrient Blueprint</h2>
-                <p class="text-gray-700 mb-6">This blueprint follows your requested **Push (Saturday), Pull (Sunday), Legs (Monday)** split. Notice how the training days (Workout) and recovery/low-activity days (Active Recovery/OFF) rotate, ensuring maximum muscle recovery.</p>
+                <p class="text-gray-700 mb-6">This blueprint follows your requested **Push (Saturday), Pull (Sunday), Legs (Monday)** split. The 2000 kcal / 215g Protein plan is maintained daily, supporting muscle preservation even with intense training.</p>
 
-                <!-- TRAINING SCHEDULE GRID -->
-                <div class="day-grid">
-                    <!-- Day 1 (Saturday) -->
-                    <div class="p-3 bg-red-100 border border-red-400 rounded-lg">
+                
+
+<div class="day-grid">
+                    
+
+<div class="p-3 bg-red-100 border border-red-400 rounded-lg">
                         <div class="font-bold text-lg text-red-700">SAT</div>
                         <div class="text-sm font-semibold mt-1">PUSH</div>
                         <div class="text-xs text-gray-600">(Chest, Shoulders, Triceps)</div>
                     </div>
-                    <!-- Day 2 (Sunday) -->
-                    <div class="p-3 bg-blue-100 border border-blue-400 rounded-lg">
+                    
+
+<div class="p-3 bg-blue-100 border border-blue-400 rounded-lg">
                         <div class="font-bold text-lg text-blue-700">SUN</div>
                         <div class="text-sm font-semibold mt-1">PULL</div>
                         <div class="text-xs text-gray-600">(Back, Biceps, Traps)</div>
                     </div>
-                    <!-- Day 3 (Monday) -->
-                    <div class="p-3 bg-green-100 border border-green-400 rounded-lg">
+                    
+
+<div class="p-3 bg-green-100 border border-green-400 rounded-lg">
                         <div class="font-bold text-lg text-green-700">MON</div>
                         <div class="text-sm font-semibold mt-1">LEGS</div>
                         <div class="text-xs text-gray-600">(Quads, Hams, Calves)</div>
                     </div>
-                    <!-- Day 4 (Tuesday) -->
-                    <div class="p-3 bg-yellow-100 border border-yellow-400 rounded-lg">
+                    
+
+<div class="p-3 bg-yellow-100 border border-yellow-400 rounded-lg">
                         <div class="font-bold text-lg text-yellow-700">TUE</div>
                         <div class="text-sm font-semibold mt-1">Active Rest</div>
                         <div class="text-xs text-gray-600">(LISS Cardio/Mobility)</div>
                     </div>
-                    <!-- Day 5 (Wednesday) -->
-                    <div class="p-3 bg-red-100 border border-red-400 rounded-lg">
+                    
+
+<div class="p-3 bg-red-100 border border-red-400 rounded-lg">
                         <div class="font-bold text-lg text-red-700">WED</div>
                         <div class="text-sm font-semibold mt-1">PUSH</div>
                         <div class="text-xs text-gray-600">(Chest, Shoulders, Triceps)</div>
                     </div>
-                    <!-- Day 6 (Thursday) -->
-                    <div class="p-3 bg-blue-100 border border-blue-400 rounded-lg">
+                    
+
+<div class="p-3 bg-blue-100 border border-blue-400 rounded-lg">
                         <div class="font-bold text-lg text-blue-700">THU</div>
                         <div class="text-sm font-semibold mt-1">PULL</div>
                         <div class="text-xs text-gray-600">(Back, Biceps, Traps)</div>
                     </div>
-                    <!-- Day 7 (Friday) -->
-                    <div class="p-3 bg-green-100 border border-green-400 rounded-lg">
+                    
+
+<div class="p-3 bg-green-100 border border-green-400 rounded-lg">
                         <div class="font-bold text-lg text-green-700">FRI</div>
                         <div class="text-sm font-semibold mt-1">LEGS</div>
                         <div class="text-xs text-gray-600">(Quads, Hams, Calves)</div>
@@ -706,7 +716,7 @@
                 
                 <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <h3 class="font-bold text-gray-800">Timing Note:</h3>
-                    <p class="text-sm text-gray-600">On **Training Days (Push/Pull/Legs)**, use the full 2400 kcal meal plan, ensuring Meal 5 is consumed post-workout. On **Active Rest** days, you can lower total calories by dropping Meal 5 (post-workout) and reducing overall carb intake.</p>
+                    <p class="text-sm text-gray-600">The 2000 kcal / 215g Protein plan is consistent daily. For optimal nutrient timing, try to place **Solid Meal 1 (Oats, PB, Banana)** around your main workout session to fuel performance or kickstart recovery.</p>
                 </div>
             </div>
             
@@ -719,31 +729,31 @@
             
             <div id="principles-text-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
-                <div class="card p-6 bg-gray-50 border-t-4 border-t-[#4CAF50]">
+                <div class="card p-6 bg-gray-50 border-t-4 border-t-[#00C853]">
                     <div class="flex items-center mb-3">
-                        <span class="text-2xl font-black text-[#4CAF50] mr-3">&#9733;</span>
+                        <span class="text-2xl font-black text-[#00C853] mr-3">&#9733;</span>
                         <h3 class="text-xl font-semibold">Hyper-Hydration</h3>
                     </div>
-                    <p class="text-gray-700 text-sm">Target 1.5 - 2 Gallons of water daily. This maximizes fat metabolism, reduces water retention, and maintains muscle fullness, which is critical for the "dry" look.</p>
+                    <p class="text-gray-700 text-sm">Target 1.5 - 2 Gallons of water daily. With high protein intake, this is **critical** for kidney function, nutrient transport, and minimizing water retention for a "dry" look.</p>
                 </div>
 
-                <div class="card p-6 bg-gray-50 border-t-4 border-t-[#4CAF50]">
+                <div class="card p-6 bg-gray-50 border-t-4 border-t-[#00C853]">
                     <div class="flex items-center mb-3">
-                        <span class="text-2xl font-black text-[#4CAF50] mr-3">&#9733;</span>
+                        <span class="text-2xl font-black text-[#00C853] mr-3">&#9733;</span>
                         <h3 class="text-xl font-semibold">Micro-Nutrient Density</h3>
                     </div>
-                    <p class="text-gray-700 text-sm">Prioritize green, fibrous vegetables like asparagus and broccoli at every main meal. These provide bulk, satiety, and essential vitamins with minimal caloric impact.</p>
+                    <p class="text-gray-700 text-sm">Although protein is dominant, prioritize nutrient-dense whole foods like green, fibrous vegetables. These provide essential vitamins, minerals, and satiety with minimal calories.</p>
                 </div>
 
-                <div class="card p-6 bg-gray-50 border-t-4 border-t-[#4CAF50]">
+                <div class="card p-6 bg-gray-50 border-t-4 border-t-[#00C853]">
                     <div class="flex items-center mb-3">
-                        <span class="text-2xl font-black text-[#4CAF50] mr-3">&#9733;</span>
-                        <h3 class="text-xl font-semibold">Strict Meal Adherence</h3>
+                        <span class="text-2xl font-black text-[#00C853] mr-3">&#9733;</span>
+                        <h3 class="text-xl font-semibold">Precision & Adherence</h3>
                     </div>
-                    <p class="text-gray-700 text-sm">The plan is set for 6 meals to manage hunger and maintain a steady metabolism. **Prep 3 days in advance** to eliminate decision fatigue and ensure consistency.</p>
+                    <p class="text-gray-700 text-sm">With such tight macros, **accurate measurement** of whey and solid foods is paramount. Consistency in following this plan will be the key to achieving your physique goals.</p>
                 </div>
             </div>
-            <button id="ttsButton" onclick="speakPrinciples()" class="w-full mt-6 bg-[#4CAF50] text-white py-2 rounded-md font-semibold hover:bg-[#8BC34A] button-shadow flex items-center justify-center">
+            <button id="ttsButton" onclick="speakPrinciples()" class="w-full mt-6 bg-[#00C853] text-white py-2 rounded-md font-semibold hover:bg-green-600 button-shadow flex items-center justify-center">
                 🔊 Hear Principles Read
             </button>
         </section>
