@@ -297,6 +297,27 @@
             });
         }
 
+        // --- KPI Update Function (FIXED: Injection of values into HTML) ---
+        function updateKPIs() {
+            document.getElementById('kpi-calories').textContent = chartData.totalCalories;
+            document.getElementById('kpi-protein').textContent = chartData.targetProtein;
+            document.getElementById('kpi-carbs').textContent = chartData.targetCarbs;
+            document.getElementById('kpi-fat').textContent = chartData.targetFat;
+
+            document.getElementById('kpi-protein-perc').textContent = chartData.macroPercentages[0];
+            document.getElementById('kpi-carbs-perc').textContent = chartData.macroPercentages[1];
+            document.getElementById('kpi-fat-perc').textContent = chartData.macroPercentages[2];
+            
+            // Update labels with macro percentages
+            document.getElementById('macro-p-perc').textContent = chartData.macroPercentages[0];
+            document.getElementById('macro-c-perc').textContent = chartData.macroPercentages[1];
+            document.getElementById('macro-f-perc').textContent = chartData.macroPercentages[2];
+            
+            // Update line chart subtitle
+            document.getElementById('line-chart-total').textContent = chartData.totalCalories;
+            
+        }
+
         // --- AI Interaction Functions (omitted for brevity) ---
         async function generateSubstitution() {
             const inputFood = document.getElementById('inputFood').value.trim();
@@ -473,6 +494,7 @@
 
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
+            updateKPIs(); // <-- NOW CALLS FUNCTION TO INJECT NUMBERS
             renderMacroDonutChart();
             renderCalorieLineChart();
             renderProteinBarChart();
@@ -493,31 +515,31 @@
         </header>
 
         
-<!-- UPDATED: Changed grid to 4 columns (sm:grid-cols-2 lg:grid-cols-4) and added FAT KPI -->
+<!-- UPDATED: Replaced template literals with target IDs for JavaScript injection -->
 <section id="kpis" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             
             <div class="card p-6 text-center">
                 <h2 class="text-sm uppercase font-bold text-gray-500 mb-2">Daily Calorie Target</h2>
-                <div class="stat-number text-6xl font-black">${chartData.totalCalories}</div>
+                <div class="stat-number text-6xl font-black" id="kpi-calories"></div>
                 <p class="text-gray-700 mt-2 font-semibold">kcal</p>
             </div>
 
             <div class="card p-6 text-center">
                 <h2 class="text-sm uppercase font-bold text-gray-500 mb-2">Protein Intake (Minimum)</h2>
-                <div class="stat-number text-6xl font-black">${chartData.targetProtein}</div>
-                <p class="text-gray-700 mt-2 font-semibold">grams / ${chartData.macroPercentages[0]}%</p>
+                <div class="stat-number text-6xl font-black" id="kpi-protein"></div>
+                <p class="text-gray-700 mt-2 font-semibold">grams / <span id="kpi-protein-perc"></span>%</p>
             </div>
 
             <div class="card p-6 text-center">
                 <h2 class="text-sm uppercase font-bold text-gray-500 mb-2">Carbohydrate Intake</h2>
-                <div class="stat-number text-6xl font-black">${chartData.targetCarbs}</div>
-                <p class="text-gray-700 mt-2 font-semibold">grams / ${chartData.macroPercentages[1]}%</p>
+                <div class="stat-number text-6xl font-black" id="kpi-carbs"></div>
+                <p class="text-gray-700 mt-2 font-semibold">grams / <span id="kpi-carbs-perc"></span>%</p>
             </div>
 
             <div class="card p-6 text-center">
                 <h2 class="text-sm uppercase font-bold text-gray-500 mb-2">Fat Intake (Essential)</h2>
-                <div class="stat-number text-6xl font-black">${chartData.targetFat}</div>
-                <p class="text-gray-700 mt-2 font-semibold">grams / ${chartData.macroPercentages[2]}%</p>
+                <div class="stat-number text-6xl font-black" id="kpi-fat"></div>
+                <p class="text-gray-700 mt-2 font-semibold">grams / <span id="kpi-fat-perc"></span>%</p>
             </div>
             
         </section>
@@ -629,16 +651,16 @@
             
             <div class="lg:col-span-1 card">
                 <h2 class="text-2xl font-bold accent-text mb-4">Macro Composition Overview</h2>
-                <p class="text-gray-700 mb-6">This plan is a **highly aggressive, protein-centric cut**. The 44% protein ensures maximum muscle retention while the lower carbs and moderate fats drive significant fat loss.</p>
+                <p class="text-gray-700 mb-6">This plan is a **highly aggressive, protein-centric cut**. The <span id="macro-p-perc"></span>% protein ensures maximum muscle retention while the lower carbs and moderate fats drive significant fat loss.</p>
                 <div class="chart-container h-[350px]">
                     <canvas id="macroDonutChart"></canvas>
                 </div>
-                <p class="text-sm text-gray-500 mt-4 text-center">Breakdown: P (${chartData.macroPercentages[0]}%) C (${chartData.macroPercentages[1]}%) F (${chartData.macroPercentages[2]}%)</p>
+                <p class="text-sm text-gray-500 mt-4 text-center">Breakdown: P (<span id="macro-p-perc"></span>%) C (<span id="macro-c-perc"></span>%) F (<span id="macro-f-perc"></span>%)</p>
             </div>
 
             <div class="lg:col-span-2 card">
                 <h2 class="text-2xl font-bold accent-text mb-4">Calorie Distribution Across 5 Meals</h2>
-                <p class="text-gray-700 mb-6">Calories are distributed to deliver large protein doses around critical times (morning, post-workout, bedtime), with solid meals supplementing energy from carbs and healthy fats.</p>
+                <p class="text-gray-700 mb-6">Calories are distributed to deliver large protein doses around critical times (morning, post-workout, bedtime), with solid meals supplementing energy from carbs and healthy fats. (Target: <span id="line-chart-total"></span> kcal Total)</p>
                 <div class="chart-container h-[400px] max-w-full">
                     <canvas id="calorieLineChart"></canvas>
                 </div>
