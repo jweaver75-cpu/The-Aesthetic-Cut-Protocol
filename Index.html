@@ -57,31 +57,128 @@
             font-weight: 700;
             text-align: center;
         }
+        .button-shadow {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.15s ease-in-out;
+        }
+        .button-shadow:hover {
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+        }
+        .meal-card {
+            border-left: 5px solid;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        /* Custom responsive grid for the 7-day split */
+        .day-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columns on small screens */
+            gap: 0.75rem;
+        }
+        @media (min-width: 640px) {
+            .day-grid {
+                grid-template-columns: repeat(4, 1fr); /* 4 columns on medium screens */
+            }
+        }
+        @media (min-width: 1024px) {
+            .day-grid {
+                grid-template-columns: repeat(7, 1fr); /* 7 columns on large screens */
+            }
+        }
     </style>
 </head>
 <body class="p-4 md:p-10">
     
-    <script>
+    <script type="module">
+        // Global Data for Charts and AI context
         const chartData = {
-            totalCalories: 2400,
-            targetProtein: 250,
-            targetCarbs: 220,
-            targetFat: 65,
-            
-            macroLabels: ['Protein (42%)', 'Carbohydrates (37%)', 'Fats (21%)'],
-            macroPercentages: [42, 37, 21],
-            
-            mealLabels: ['Meal 1: Quick Protein', 'Meal 2: Lean Mass', 'Meal 3: Sustained Energy', 'Meal 4: Pre-Workout Fuel', 'Meal 5: Post-Workout Recovery', 'Meal 6: Slow Digest'],
-            mealCalories: [350, 300, 450, 300, 600, 400],
-            
-            proteinSources: [
-                { source: 'Lean Meats & Fish', grams: 140, color: '#2196F3' },
-                { source: 'Dairy & Eggs', grams: 65, color: '#4CAF50' },
-                { source: 'Supplements (Whey/Casein)', grams: 45, color: '#FF9800' }
-            ],
-            
+            totalCalories: 2400, targetProtein: 250, targetCarbs: 220, targetFat: 65,
+            macroLabels: ['Protein (42%)', 'Carbohydrates (37%)', 'Fats (21%)'], macroPercentages: [42, 37, 21],
+            mealLabels: ['Meal 1: Quick Protein', 'Meal 2: Lean Mass', 'Meal 3: Sustained Energy', 'Meal 4: Pre-Workout Fuel', 'Meal 5: Post-Workout Recovery', 'Meal 6: Slow Digest'], 
+            mealCalories: [350, 300, 450, 300, 600, 400], // Total 2400
+            proteinSources: [{ source: 'Lean Meats & Fish', grams: 140, color: '#2196F3' }, { source: 'Dairy & Eggs', grams: 65, color: '#4CAF50' }, { source: 'Supplements (Whey/Casein)', grams: 45, color: '#FF9800' }],
             chartColors: ['#2196F3', '#4CAF50', '#FF9800', '#03A9F4', '#8BC34A', '#FFC107'],
         };
+
+        const apiKey = ""; 
+        const FLASH_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+        // --- Core AI Helper Functions ---
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate = 16000) {
+            const numChannels = 1;
+            const numSamples = pcm16.length;
+            const buffer = new ArrayBuffer(44 + numSamples * 2);
+            const view = new DataView(buffer);
+
+            let pos = 0;
+
+            view.setUint32(pos, 0x52494646, false); pos += 4;
+            view.setUint32(pos, 36 + numSamples * 2, true); pos += 4;
+            view.setUint32(pos, 0x57415645, false); pos += 4;
+            view.setUint32(pos, 0x666d7420, false); pos += 4;
+            view.setUint32(pos, 16, true); pos += 4;
+            view.setUint16(pos, 1, true); pos += 2;
+            view.setUint16(pos, numChannels, true); pos += 2;
+            view.setUint32(pos, sampleRate, true); pos += 4;
+            view.setUint32(pos, sampleRate * numChannels * 2, true); pos += 4;
+            view.setUint16(pos, numChannels * 2, true); pos += 2;
+            view.setUint16(pos, 16, true); pos += 2;
+            view.setUint32(pos, 0x64617461, false); pos += 4;
+            view.setUint32(pos, numSamples * 2, true); pos += 4;
+
+            for (let i = 0; i < numSamples; i++) {
+                view.setInt16(pos, pcm16[i], true);
+                pos += 2;
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function callGeminiApi(url, payload, maxRetries = 5) {
+            let lastError = null;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorBody = await response.text();
+                        throw new Error(`API call failed with status ${response.status}: ${errorBody}`);
+                    }
+
+                    return await response.json();
+
+                } catch (error) {
+                    lastError = error;
+                    if (i < maxRetries - 1) {
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    } else {
+                        console.error("Gemini API call failed after multiple retries.", lastError);
+                        throw new Error("Failed to connect to the AI service. Please try again.");
+                    }
+                }
+            }
+        }
+        
+        // --- Chart Rendering Functions ---
 
         function processLabel(label) {
             if (label.length <= 16) return label;
@@ -200,11 +297,193 @@
             });
         }
 
+        // --- AI Interaction Functions ---
+
+        async function generateSubstitution() {
+            const inputFood = document.getElementById('inputFood').value.trim();
+            const resultDiv = document.getElementById('substitutionResult');
+            const button = document.getElementById('substitutionButton');
+
+            if (!inputFood) {
+                resultDiv.innerHTML = '<p class="text-red-500">Please enter a food item to substitute.</p>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<p class="text-gray-500 flex items-center justify-center"><svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-accent-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating macro-matched swap...</p>';
+            button.disabled = true;
+
+            const systemPrompt = `You are an expert nutrition coach for competitive physique athletes. Your goal is to provide a single, clean, macro-matched food substitution based on the user's input. The original plan is a 2400 kcal cutting diet with 250g Protein, 220g Carbs, 65g Fat. Your substitution should maintain the high protein/low-fat focus. Provide only the food name, macronutrients, and a brief note on its use in the plan. Format the output as a simple paragraph.`;
+            
+            const userQuery = `I need a macro-matched substitute for "${inputFood}" in my cutting diet.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const result = await callGeminiApi(FLASH_API_URL, payload);
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't find a suitable substitution.";
+                
+                resultDiv.innerHTML = `
+                    <div class="mt-4 p-4 border border-[#2196F3] bg-blue-50 rounded-lg">
+                        <h4 class="font-bold accent-text mb-2">✨ Suggested Swap:</h4>
+                        <p class="text-gray-800">${text}</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="text-red-500">Error generating substitution: ${error.message}</p>`;
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        async function generateRationale() {
+            const rationaleTopic = document.getElementById('rationaleTopic').value.trim();
+            const rationaleResultDiv = document.getElementById('rationaleResult');
+            const button = document.getElementById('rationaleButton');
+
+            if (!rationaleTopic) {
+                rationaleResultDiv.innerHTML = '<p class="text-red-500">Please enter a nutrition question (e.g., "Why high protein?").</p>';
+                return;
+            }
+
+            rationaleResultDiv.innerHTML = '<p class="text-gray-500 flex items-center justify-center"><svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-accent-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Grounding response with current research...</p>';
+            button.disabled = true;
+
+            const systemPrompt = `You are a sports science researcher. Provide a concise, scientifically grounded, 3-4 sentence explanation for the user's nutrition question, focusing on bodybuilding and cutting phases.`;
+            
+            const userQuery = `Explain the rationale behind this nutrition topic: "${rationaleTopic}"`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const result = await callGeminiApi(FLASH_API_URL, payload);
+                const candidate = result.candidates?.[0];
+                const text = candidate?.content?.parts?.[0]?.text || "Sorry, I couldn't retrieve a grounded scientific explanation.";
+                
+                let sourcesHtml = '';
+                const groundingMetadata = candidate?.groundingMetadata;
+                if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                    const sources = groundingMetadata.groundingAttributions
+                        .map(attr => ({ uri: attr.web?.uri, title: attr.web?.title }))
+                        .filter(source => source.uri && source.title)
+                        .slice(0, 3);
+
+                    if (sources.length > 0) {
+                        sourcesHtml = '<div class="mt-3 text-xs text-gray-500">Sources: ' + 
+                            sources.map(s => `<a href="${s.uri}" target="_blank" class="hover:underline">${s.title.substring(0, 30)}...</a>`).join(' | ') + 
+                            '</div>';
+                    }
+                }
+
+                rationaleResultDiv.innerHTML = `
+                    <div class="mt-4 p-4 border border-[#4CAF50] bg-green-50 rounded-lg">
+                        <h4 class="font-bold text-[#4CAF50] mb-2">🔬 Scientific Rationale:</h4>
+                        <p class="text-gray-800">${text}</p>
+                        ${sourcesHtml}
+                    </div>
+                `;
+
+            } catch (error) {
+                rationaleResultDiv.innerHTML = `<p class="text-red-500">Error generating rationale: ${error.message}</p>`;
+            } finally {
+                button.disabled = false;
+            }
+        }
+        
+        async function speakPrinciples() {
+            const principleText = document.getElementById('principles-text-container').innerText.replace(/\s+/g, ' ').trim();
+            const audioPlayer = document.getElementById('audioPlayer');
+            const button = document.getElementById('ttsButton');
+            
+            if (audioPlayer.paused === false && !audioPlayer.ended) {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+                button.innerHTML = '🔊 Hear Principles Read';
+                button.classList.remove('bg-red-500', 'hover:bg-red-600');
+                button.classList.add('bg-[#4CAF50]', 'hover:bg-[#8BC34A]');
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = '<svg class="animate-spin h-5 w-5 mr-3 inline text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating Audio...';
+            
+            const systemPrompt = `Read the following text in an informative and firm tone, suitable for a fitness professional.`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: principleText }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Kore" }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+            
+            try {
+                const result = await callGeminiApi(TTS_API_URL, payload);
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                    const match = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = match ? parseInt(match[1], 10) : 16000;
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.play();
+                    
+                    button.innerHTML = '🛑 Stop Reading';
+                    button.classList.remove('bg-[#4CAF50]', 'hover:bg-[#8BC34A]');
+                    button.classList.add('bg-red-500', 'hover:bg-red-600');
+                    
+                    audioPlayer.onended = () => {
+                        button.innerHTML = '🔊 Hear Principles Read';
+                        button.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        button.classList.add('bg-[#4CAF50]', 'hover:bg-[#8BC34A]');
+                    };
+                } else {
+                    console.error("TTS response missing audio data or invalid mime type:", mimeType);
+                    // No alert message needed, just revert button
+                }
+            } catch (error) {
+                button.innerHTML = '❌ TTS Error';
+                console.error("TTS Error:", error);
+            } finally {
+                button.disabled = false;
+                if (button.innerHTML.includes('Generating') || button.innerHTML.includes('Error')) {
+                     button.innerHTML = '🔊 Hear Principles Read';
+                     button.classList.remove('bg-red-500', 'hover:bg-red-600');
+                     button.classList.add('bg-[#4CAF50]', 'hover:bg-[#8BC34A]');
+                }
+            }
+        }
+
+
+        // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             renderMacroDonutChart();
             renderCalorieLineChart();
             renderProteinBarChart();
         });
+
+        // Expose functions globally for HTML calls
+        window.generateSubstitution = generateSubstitution;
+        window.generateRationale = generateRationale;
+        window.speakPrinciples = speakPrinciples;
+
     </script>
 
     <div class="max-w-7xl mx-auto">
@@ -214,6 +493,7 @@
             <p class="text-xl md:text-2xl text-gray-600 mt-3">Classic Physique Nutrition Blueprint for Definition and V-Taper</p>
         </header>
 
+        <!-- KPI AND CHART SECTIONS -->
         <section id="kpis" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             
             <div class="card p-6 text-center">
@@ -235,6 +515,113 @@
             </div>
             
         </section>
+
+        <!-- AI NUTRITION ASSISTANT SECTION -->
+        <section id="ai-tools" class="mb-12">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center border-b-2 pb-2 border-gray-200">🤖 AI Nutrition Assistant (Gemini-Powered)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Macro Substitution Generator -->
+                <div class="card p-6 border-t-4 border-t-[#2196F3] bg-blue-50/50">
+                    <h3 class="text-xl font-bold accent-text mb-3 flex items-center">✨ Macro Substitution Generator</h3>
+                    <p class="text-gray-700 text-sm mb-4">Need to swap out a food item while keeping your macros tight? The AI will suggest a macro-matched, cutting-friendly alternative.</p>
+                    <input type="text" id="inputFood" placeholder="e.g., Brown Rice" class="w-full p-2 mb-3 border border-gray-300 rounded-md focus:ring-[#2196F3] focus:border-[#2196F3]">
+                    <button id="substitutionButton" onclick="generateSubstitution()" class="w-full bg-[#2196F3] text-white py-2 rounded-md font-semibold hover:bg-blue-600 button-shadow">
+                        Generate Swap
+                    </button>
+                    <div id="substitutionResult" class="mt-4 min-h-[50px]"></div>
+                </div>
+
+                <!-- Scientific Rationale Finder -->
+                <div class="card p-6 border-t-4 border-t-[#4CAF50] bg-green-50/50">
+                    <h3 class="text-xl font-bold text-[#4CAF50] mb-3 flex items-center">🔬 Scientific Rationale Finder</h3>
+                    <p class="text-gray-700 text-sm mb-4">Get a quick, grounded scientific explanation for the principles in this plan. Utilizes real-time research.</p>
+                    <input type="text" id="rationaleTopic" placeholder="e.g., Carb timing vs fat loss" class="w-full p-2 mb-3 border border-gray-300 rounded-md focus:ring-[#4CAF50] focus:border-[#4CAF50]">
+                    <button id="rationaleButton" onclick="generateRationale()" class="w-full bg-[#4CAF50] text-white py-2 rounded-md font-semibold hover:bg-green-600 button-shadow">
+                        Search Rationale
+                    </button>
+                    <div id="rationaleResult" class="mt-4 min-h-[50px]"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MEAL RECOMMENDATIONS SECTION (NEW) -->
+        <section id="meal-recommendations" class="mb-12">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center border-b-2 pb-2 border-gray-200">🍽️ Sample Meal Plan & Cutting Foods</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Meal 1 -->
+                <div class="meal-card border-l-[#FF9800]">
+                    <h3 class="text-lg font-bold text-[#FF9800] mb-2">Meal 1: Wake Up & Go (350 kcal)</h3>
+                    <p class="text-sm text-gray-700 font-semibold">Focus: High Protein, Low Fat, Quick Digest</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
+                        <li>30g Whey Isolate</li>
+                        <li>1/2 cup Oats (dry measure)</li>
+                        <li>1 tbsp Chia Seeds</li>
+                        <li>Water/Black Coffee</li>
+                    </ul>
+                </div>
+                
+                <!-- Meal 2 -->
+                <div class="meal-card border-l-[#4CAF50]">
+                    <h3 class="text-lg font-bold text-[#4CAF50] mb-2">Meal 2: Lean Mass (300 kcal)</h3>
+                    <p class="text-sm text-gray-700 font-semibold">Focus: Leanest Protein Source</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
+                        <li>170g Grilled Chicken Breast</li>
+                        <li>100g Asparagus (steamed)</li>
+                        <li>Pinch of Sea Salt</li>
+                    </ul>
+                </div>
+                
+                <!-- Meal 3 -->
+                <div class="meal-card border-l-[#2196F3]">
+                    <h3 class="text-lg font-bold text-[#2196F3] mb-2">Meal 3: Sustained Energy (450 kcal)</h3>
+                    <p class="text-sm text-gray-700 font-semibold">Focus: Complex Carbs, Fiber, Protein</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
+                        <li>150g Turkey Mince (98% lean)</li>
+                        <li>1 cup White Rice (cooked)</li>
+                        <li>Large Salad (Spinach, Cucumber)</li>
+                        <li>1 tbsp Low-Cal Dressing</li>
+                    </ul>
+                </div>
+
+                 <!-- Meal 4 -->
+                <div class="meal-card border-l-[#03A9F4]">
+                    <h3 class="text-lg font-bold text-[#03A9F4] mb-2">Meal 4: Pre-Workout Fuel (300 kcal)</h3>
+                    <p class="text-sm text-gray-700 font-semibold">Focus: Fast Carbs & Amino Acids</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
+                        <li>1 scoop Hydrolyzed Protein</li>
+                        <li>1 Banana or 1 Rice Cake with Jelly</li>
+                        <li>L-Citrulline / Electrolytes</li>
+                    </ul>
+                </div>
+                
+                <!-- Meal 5 -->
+                <div class="meal-card border-l-[#8BC34A]">
+                    <h3 class="text-lg font-bold text-[#8BC34A] mb-2">Meal 5: Post-Workout Recovery (600 kcal)</h3>
+                    <p class="text-sm text-gray-700 font-semibold">Focus: Highest Calorie, Carb & Protein Load</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
+                        <li>200g Lean Steak (Sirloin)</li>
+                        <li>2 cups Baked Sweet Potato</li>
+                        <li>1 cup Green Beans</li>
+                        <li>1 tsp Olive Oil (post-carb load)</li>
+                    </ul>
+                </div>
+                
+                <!-- Meal 6 -->
+                <div class="meal-card border-l-[#FFC107]">
+                    <h3 class="text-lg font-bold text-[#FFC107] mb-2">Meal 6: Slow Digest (400 kcal)</h3>
+                    <p class="text-sm text-gray-700 font-semibold">Focus: Anti-Catabolic during Sleep</p>
+                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
+                        <li>30g Casein Protein Powder</li>
+                        <li>1/4 cup Almonds or 1 tbsp Peanut Butter</li>
+                        <li>Mixed with Water or Unsweetened Almond Milk</li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+
 
         <section id="macro-composition" class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
             
@@ -268,37 +655,58 @@
             </div>
 
             <div class="lg:col-span-2 card">
-                <h2 class="text-2xl font-bold accent-text mb-4">Nutrient Timing & Purpose Flow</h2>
-                <p class="text-gray-700 mb-6">Each of the 6 meals serves a specific function within the 15-hour eating window, ensuring energy availability when needed and slow-release fuel during fasting/sleep.</p>
+                <h2 class="text-2xl font-bold accent-text mb-4">7-Day Classic Physique Training & Nutrient Blueprint</h2>
+                <p class="text-gray-700 mb-6">This blueprint follows your requested **Push (Saturday), Pull (Sunday), Legs (Monday)** split. Notice how the training days (Workout) and recovery/low-activity days (Active Recovery/OFF) rotate, ensuring maximum muscle recovery.</p>
 
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="flow-node">
-                        <div class="text-lg font-bold">M1 & M2 (AM)</div>
-                        <div class="text-sm mt-1 text-gray-600">High-Protein, Moderate Carb. <span class="font-semibold">Goal: Stop Catabolism, Start Day.</span></div>
+                <!-- TRAINING SCHEDULE GRID -->
+                <div class="day-grid">
+                    <!-- Day 1 (Saturday) -->
+                    <div class="p-3 bg-red-100 border border-red-400 rounded-lg">
+                        <div class="font-bold text-lg text-red-700">SAT</div>
+                        <div class="text-sm font-semibold mt-1">PUSH</div>
+                        <div class="text-xs text-gray-600">(Chest, Shoulders, Triceps)</div>
                     </div>
-                    <div class="col-span-1 flex justify-center items-center flow-arrow">&rarr;</div>
-                    <div class="flow-node">
-                        <div class="text-lg font-bold">M3 (Mid-Day)</div>
-                        <div class="text-sm mt-1 text-gray-600">Balanced P/C/F. <span class="font-semibold">Goal: Sustained Energy, Fiber Intake.</span></div>
+                    <!-- Day 2 (Sunday) -->
+                    <div class="p-3 bg-blue-100 border border-blue-400 rounded-lg">
+                        <div class="font-bold text-lg text-blue-700">SUN</div>
+                        <div class="text-sm font-semibold mt-1">PULL</div>
+                        <div class="text-xs text-gray-600">(Back, Biceps, Traps)</div>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-4 mt-4">
-                    <div class="col-span-1 flex justify-center items-center flow-arrow">&darr;</div>
-                    <div class="col-span-1"></div>
-                    <div class="col-span-1 flex justify-center items-center flow-arrow">&darr;</div>
+                    <!-- Day 3 (Monday) -->
+                    <div class="p-3 bg-green-100 border border-green-400 rounded-lg">
+                        <div class="font-bold text-lg text-green-700">MON</div>
+                        <div class="text-sm font-semibold mt-1">LEGS</div>
+                        <div class="text-xs text-gray-600">(Quads, Hams, Calves)</div>
+                    </div>
+                    <!-- Day 4 (Tuesday) -->
+                    <div class="p-3 bg-yellow-100 border border-yellow-400 rounded-lg">
+                        <div class="font-bold text-lg text-yellow-700">TUE</div>
+                        <div class="text-sm font-semibold mt-1">Active Rest</div>
+                        <div class="text-xs text-gray-600">(LISS Cardio/Mobility)</div>
+                    </div>
+                    <!-- Day 5 (Wednesday) -->
+                    <div class="p-3 bg-red-100 border border-red-400 rounded-lg">
+                        <div class="font-bold text-lg text-red-700">WED</div>
+                        <div class="text-sm font-semibold mt-1">PUSH</div>
+                        <div class="text-xs text-gray-600">(Chest, Shoulders, Triceps)</div>
+                    </div>
+                    <!-- Day 6 (Thursday) -->
+                    <div class="p-3 bg-blue-100 border border-blue-400 rounded-lg">
+                        <div class="font-bold text-lg text-blue-700">THU</div>
+                        <div class="text-sm font-semibold mt-1">PULL</div>
+                        <div class="text-xs text-gray-600">(Back, Biceps, Traps)</div>
+                    </div>
+                    <!-- Day 7 (Friday) -->
+                    <div class="p-3 bg-green-100 border border-green-400 rounded-lg">
+                        <div class="font-bold text-lg text-green-700">FRI</div>
+                        <div class="text-sm font-semibold mt-1">LEGS</div>
+                        <div class="text-xs text-gray-600">(Quads, Hams, Calves)</div>
+                    </div>
                 </div>
                 
-                <div class="grid grid-cols-3 gap-4 mt-4">
-                    <div class="flow-node">
-                        <div class="text-lg font-bold">M6 (Late Night)</div>
-                        <div class="text-sm mt-1 text-gray-600">Casein & Healthy Fats. <span class="font-semibold">Goal: Anti-Catabolic, Slow Release.</span></div>
-                    </div>
-                    <div class="col-span-1 flex justify-center items-center flow-arrow">&larr;</div>
-                    <div class="flow-node">
-                        <div class="text-lg font-bold">M4 & M5 (P/W)</div>
-                        <div class="text-sm mt-1 text-gray-600">Highest Calories/Carbs. <span class="font-semibold">Goal: Glycogen Replenishment & Recovery.</span></div>
-                    </div>
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h3 class="font-bold text-gray-800">Timing Note:</h3>
+                    <p class="text-sm text-gray-600">On **Training Days (Push/Pull/Legs)**, use the full 2400 kcal meal plan, ensuring Meal 5 is consumed post-workout. On **Active Rest** days, you can lower total calories by dropping Meal 5 (post-workout) and reducing overall carb intake.</p>
                 </div>
             </div>
             
@@ -306,7 +714,10 @@
 
         <section id="principles" class="mb-12">
             <h2 class="text-3xl font-bold accent-text mb-6 text-center">Non-Negotiable Principles of the Cut</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <audio id="audioPlayer" class="w-full mb-4" controls hidden></audio>
+            
+            <div id="principles-text-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
                 <div class="card p-6 bg-gray-50 border-t-4 border-t-[#4CAF50]">
                     <div class="flex items-center mb-3">
@@ -332,6 +743,9 @@
                     <p class="text-gray-700 text-sm">The plan is set for 6 meals to manage hunger and maintain a steady metabolism. **Prep 3 days in advance** to eliminate decision fatigue and ensure consistency.</p>
                 </div>
             </div>
+            <button id="ttsButton" onclick="speakPrinciples()" class="w-full mt-6 bg-[#4CAF50] text-white py-2 rounded-md font-semibold hover:bg-[#8BC34A] button-shadow flex items-center justify-center">
+                🔊 Hear Principles Read
+            </button>
         </section>
 
     </div>
