@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classic Physique Cutting Blueprint</title>
+    <title>Classic Physique Cutting & Training Blueprint</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -41,22 +41,6 @@
                 height: 400px;
             }
         }
-        .flow-node {
-            background-color: #E8F5E9; /* Light green node background */
-            border: 2px solid #00C853;
-            color: #1E1E1E;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0, 200, 83, 0.2);
-            position: relative;
-            text-align: center;
-        }
-        .flow-arrow {
-            color: #00C853;
-            font-size: 2rem;
-            font-weight: 700;
-            text-align: center;
-        }
         .button-shadow {
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: all 0.15s ease-in-out;
@@ -72,42 +56,155 @@
             border-radius: 0.5rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        /* Custom responsive grid for the 7-day split */
-        .day-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 columns on small screens */
-            gap: 0.75rem;
+        /* Custom styles for the interactive training split */
+        .day-tab {
+            transition: all 0.2s;
+            cursor: pointer;
         }
-        @media (min-width: 640px) {
-            .day-grid {
-                grid-template-columns: repeat(4, 1fr); /* 4 columns on medium screens */
-            }
+        .day-tab:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
-        @media (min-width: 1024px) {
-            .day-grid {
-                grid-template-columns: repeat(7, 1fr); /* 7 columns on large screens */
-            }
+        .day-tab.active {
+            box-shadow: 0 0 0 3px #2196F3, 0 4px 12px rgba(33, 150, 243, 0.4); /* Blue outline for active tab */
+            background-color: #E3F2FD; /* Light blue background for active */
+            transform: translateY(-2px);
+        }
+        .workout-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .workout-list li {
+            padding: 0.6rem 0;
+            border-bottom: 1px dashed #E0F7FA;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .workout-list li:last-child {
+            border-bottom: none;
+        }
+        .exercise-name {
+            font-weight: 600;
+            color: #1E1E1E;
+        }
+        .sets-reps {
+            font-size: 0.9rem;
+            color: #2196F3;
+            background-color: #E3F2FD;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: 700;
         }
     </style>
 </head>
 <body class="p-4 md:p-10">
     
     <script type="module">
-        // Global Data for Charts and AI context - UPDATED FOR NEW MEAL PLAN
+        // Global Data for Charts and AI context
         const chartData = {
-            totalCalories: 2000, targetProtein: 215, targetCarbs: 110, targetFat: 75, // Updated Targets
-            macroLabels: ['Protein (44%)', 'Carbohydrates (22%)', 'Fats (34%)'], macroPercentages: [44, 22, 34], // Updated Percentages
+            totalCalories: 2000, targetProtein: 215, targetCarbs: 110, targetFat: 75,
+            macroLabels: ['Protein (44%)', 'Carbohydrates (22%)', 'Fats (34%)'], macroPercentages: [44, 22, 34],
             mealLabels: ['Meal 1: Whey Shake', 'Meal 2: Solid Meal 1', 'Meal 3: Whey Shake', 'Meal 4: Solid Meal 2', 'Meal 5: Whey Shake'], 
-            mealCalories: [320, 500, 320, 500, 320], // Updated Calories for 5 meals (Total 1960 kcal - close to 2000)
-            proteinSources: [{ source: 'Whey Protein', grams: 192, color: '#2196F3' }, { source: 'Other Sources', grams: 23, color: '#FF9800' }], // Updated Protein Sources
-            chartColors: ['#00C853', '#FF9800', '#2196F3', '#03A9F4', '#8BC34A', '#FFC107'], // Adjusted color palette
+            mealCalories: [320, 500, 320, 500, 320], // Total 1960 kcal
+            proteinSources: [{ source: 'Whey Protein', grams: 192, color: '#2196F3' }, { source: 'Other Sources', grams: 23, color: '#FF9800' }],
+            chartColors: ['#00C853', '#FF9800', '#2196F3', '#03A9F4', '#8BC34A', '#FFC107'], 
         };
 
+        // --- Training Split Data (New) ---
+        const workoutData = {
+            'SAT-PUSH-A': {
+                title: 'PUSH A (Saturday): Chest Volume',
+                focus: 'High volume for chest mass, balanced shoulder/tricep work.',
+                color: 'bg-red-50 text-red-700 border-red-300',
+                exercises: [
+                    { name: 'Barbell Flat Bench Press', setsReps: '4 Sets x 6-8 Reps' },
+                    { name: 'Incline Dumbbell Press (Mid Chest)', setsReps: '3 Sets x 8-10 Reps' },
+                    { name: 'Seated Dumbbell Press (Shoulders)', setsReps: '3 Sets x 8-10 Reps' },
+                    { name: 'Cable Lateral Raise', setsReps: '3 Sets x 12-15 Reps' },
+                    { name: 'Close Grip Bench Press', setsReps: '3 Sets x 8-10 Reps' },
+                ]
+            },
+            'SUN-PULL-A': {
+                title: 'PULL A (Sunday): Back Width Focus',
+                focus: 'Emphasis on lats for V-taper development and high-volume bicep work.',
+                color: 'bg-blue-50 text-blue-700 border-blue-300',
+                exercises: [
+                    { name: 'Weighted Pull-ups (or Lat Pulldown)', setsReps: '4 Sets x 8-10 Reps' },
+                    { name: 'Seated Cable Row (Wide Grip)', setsReps: '3 Sets x 10-12 Reps' },
+                    { name: 'Straight Arm Pulldown', setsReps: '3 Sets x 15 Reps' },
+                    { name: 'Barbell Shrugs (Traps)', setsReps: '3 Sets x 10 Reps' },
+                    { name: 'Barbell Bicep Curl', setsReps: '3 Sets x 8-10 Reps' },
+                    { name: 'Reverse Grip EZ Bar Curl', setsReps: '3 Sets x 10-12 Reps' },
+                ]
+            },
+            'MON-LEGS-A': {
+                title: 'LEGS A (Monday): Quad Focus',
+                focus: 'High intensity for quad sweep development.',
+                color: 'bg-green-50 text-green-700 border-green-300',
+                exercises: [
+                    { name: 'Barbell Squats', setsReps: '4 Sets x 6-8 Reps' },
+                    { name: 'Leg Extension (High Reps)', setsReps: '3 Sets x 15-20 Reps' },
+                    { name: 'Hack Squat (or Narrow Stance Leg Press)', setsReps: '3 Sets x 10-12 Reps' },
+                    { name: 'Lying Leg Curl (Hamstrings)', setsReps: '3 Sets x 10-12 Reps' },
+                    { name: 'Seated Calf Raises', setsReps: '4 Sets x 10-15 Reps' },
+                ]
+            },
+            'TUE-PUSH-B': {
+                title: 'PUSH B (Tuesday): Shoulder Width & Triceps',
+                focus: 'Prioritizing deltoid width and triceps detail; lower chest volume.',
+                color: 'bg-red-50 text-red-700 border-red-300',
+                exercises: [
+                    { name: 'Standing Military Press', setsReps: '4 Sets x 6-8 Reps' },
+                    { name: 'Dumbbell Lateral Raise (Heavy)', setsReps: '4 Sets x 12-15 Reps' },
+                    { name: 'Reverse Pec Deck Fly (Rear Delts)', setsReps: '3 Sets x 15 Reps' },
+                    { name: 'Incline Dumbbell Press (Upper Chest)', setsReps: '3 Sets x 8-10 Reps' },
+                    { name: 'Triceps Rope Pushdown', setsReps: '4 Sets x 10-12 Reps' },
+                    { name: 'Overhead Dumbbell Extension', setsReps: '3 Sets x 8-10 Reps' },
+                ]
+            },
+            'WED-PULL-B': {
+                title: 'PULL B (Wednesday): Back Thickness & Biceps Peak',
+                focus: 'Heavy compound movements for back density and arm peak development.',
+                color: 'bg-blue-50 text-blue-700 border-blue-300',
+                exercises: [
+                    { name: 'Deadlifts (or Heavy Rack Pulls)', setsReps: '4 Sets x 5 Reps' },
+                    { name: 'Bent-Over Barbell Row', setsReps: '4 Sets x 8-10 Reps' },
+                    { name: 'Lat Pulldown (Neutral Grip)', setsReps: '3 Sets x 10-12 Reps' },
+                    { name: 'Cable Face Pulls (Rear Delts/Traps)', setsReps: '3 Sets x 15 Reps' },
+                    { name: 'Dumbbell Preacher Curl', setsReps: '3 Sets x 8-10 Reps' },
+                    { name: 'Hammer Curls', setsReps: '3 Sets x 10-12 Reps' },
+                ]
+            },
+            'THU-LEGS-B': {
+                title: 'LEGS B (Thursday): Hamstring & Glute Focus',
+                focus: 'Targeting the posterior chain for balance and density.',
+                color: 'bg-green-50 text-green-700 border-green-300',
+                exercises: [
+                    { name: 'Romanian Deadlifts (Hamstring Focus)', setsReps: '4 Sets x 8-10 Reps' },
+                    { name: 'Seated Leg Curls (Isolation)', setsReps: '4 Sets x 12-15 Reps' },
+                    { name: 'Leg Press (High/Narrow Stance)', setsReps: '3 Sets x 15-20 Reps' },
+                    { name: 'Walking Lunges (Glutes/Quads Finisher)', setsReps: '3 Sets x 10 Reps/Leg' },
+                    { name: 'Standing Calf Raises', setsReps: '4 Sets x 15-20 Reps' },
+                ]
+            },
+            'FRI-REST': {
+                title: 'ACTIVE REST (Friday)',
+                focus: 'Full recovery is paramount for muscle retention during a cut.',
+                color: 'bg-yellow-50 text-yellow-700 border-yellow-300',
+                exercises: [
+                    { name: 'Low Intensity Cardio (e.g., walk)', setsReps: '30-45 mins' },
+                    { name: 'Deep Stretching / Foam Rolling', setsReps: '15 mins' },
+                    { name: 'Sleep & Hydration Focus', setsReps: '8+ hours' },
+                ]
+            }
+        };
+
+
+        // --- Core AI Helper Functions (TTS and Chat) ---
         const apiKey = ""; 
         const FLASH_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
         const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
 
-        // --- Core AI Helper Functions (omitted for brevity, assume they are correct) ---
         function base64ToArrayBuffer(base64) {
             const binaryString = atob(base64);
             const len = binaryString.length;
@@ -178,7 +275,7 @@
             }
         }
         
-        // --- Chart Rendering Functions ---
+        // --- Chart Rendering Functions (Unchanged) ---
 
         function processLabel(label) {
             if (label.length <= 16) return label;
@@ -297,7 +394,7 @@
             });
         }
 
-        // --- KPI Update Function (FIXED: Injection of values into HTML) ---
+        // --- KPI Update Function (Injection of values into HTML) ---
         function updateKPIs() {
             document.getElementById('kpi-calories').textContent = chartData.totalCalories;
             document.getElementById('kpi-protein').textContent = chartData.targetProtein;
@@ -318,7 +415,49 @@
             
         }
 
-        // --- AI Interaction Functions (omitted for brevity) ---
+        // --- Interactive Training Split Logic (New) ---
+        function showWorkout(dayKey) {
+            // 1. Update the button styles
+            const dayTabs = document.querySelectorAll('.day-tab');
+            dayTabs.forEach(tab => tab.classList.remove('active'));
+            document.getElementById(dayKey).classList.add('active');
+
+            // 2. Get the workout data
+            const data = workoutData[dayKey];
+            const contentDiv = document.getElementById('workoutDetailsContent');
+            
+            // 3. Generate the HTML for the selected workout
+            let exercisesHtml = '';
+            if (data.exercises.length > 0) {
+                exercisesHtml = '<ul class="workout-list space-y-2">';
+                data.exercises.forEach(ex => {
+                    exercisesHtml += `
+                        <li class="flex justify-between items-center">
+                            <span class="exercise-name">${ex.name}</span>
+                            <span class="sets-reps">${ex.setsReps}</span>
+                        </li>
+                    `;
+                });
+                exercisesHtml += '</ul>';
+            } else {
+                exercisesHtml = '<p class="text-gray-500 italic mt-4">No specific heavy lifting on this day. Focus on recovery and nutrition.</p>';
+            }
+
+
+            // 4. Update the content area
+            contentDiv.innerHTML = `
+                <div class="p-6 bg-white rounded-lg border-2 border-[#2196F3]">
+                    <h3 class="text-2xl font-black text-[#2196F3] mb-2">${data.title}</h3>
+                    <p class="text-gray-600 mb-4 font-semibold">${data.focus}</p>
+                    <div class="p-4 bg-blue-50/50 rounded-md">
+                        ${exercisesHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+
+        // --- AI Interaction Functions (Unchanged) ---
         async function generateSubstitution() {
             const inputFood = document.getElementById('inputFood').value.trim();
             const resultDiv = document.getElementById('substitutionResult');
@@ -347,7 +486,7 @@
                 
                 resultDiv.innerHTML = `
                     <div class="mt-4 p-4 border border-[#2196F3] bg-blue-50 rounded-lg">
-                        <h4 class="font-bold accent-text mb-2">✨ Suggested Swap:</h4>
+                        <h4 class="font-bold text-[#2196F3] mb-2">✨ Suggested Swap:</h4>
                         <p class="text-gray-800">${text}</p>
                     </div>
                 `;
@@ -476,7 +615,6 @@
                     };
                 } else {
                     console.error("TTS response missing audio data or invalid mime type:", mimeType);
-                    // No alert message needed, just revert button
                 }
             } catch (error) {
                 button.innerHTML = '❌ TTS Error';
@@ -494,16 +632,20 @@
 
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-            updateKPIs(); // <-- NOW CALLS FUNCTION TO INJECT NUMBERS
+            updateKPIs();
             renderMacroDonutChart();
             renderCalorieLineChart();
             renderProteinBarChart();
+            
+            // Initialize the interactive split by showing PUSH A
+            showWorkout('SAT-PUSH-A');
         });
 
         // Expose functions globally for HTML calls
         window.generateSubstitution = generateSubstitution;
         window.generateRationale = generateRationale;
         window.speakPrinciples = speakPrinciples;
+        window.showWorkout = showWorkout;
 
     </script>
 
@@ -511,11 +653,11 @@
 
         <header class="text-center mb-12">
             <h1 class="text-5xl md:text-6xl font-extrabold accent-text leading-tight">The Aesthetic Cut Protocol</h1>
-            <p class="text-xl md:text-2xl text-gray-600 mt-3">Classic Physique Nutrition Blueprint for Definition and V-Taper</p>
+            <p class="text-xl md:text-2xl text-gray-600 mt-3">Classic Physique Nutrition & Training Blueprint for Definition</p>
         </header>
 
         
-<!-- UPDATED: Replaced template literals with target IDs for JavaScript injection -->
+<!-- KPI Section -->
 <section id="kpis" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             
             <div class="card p-6 text-center">
@@ -545,14 +687,94 @@
         </section>
 
         
+<!-- Macro Charts Section -->
+        <section id="macro-composition" class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            
+            <div class="lg:col-span-1 card border-t-4 border-t-[#00C853]">
+                <h2 class="text-2xl font-bold accent-text mb-4">Macro Composition Overview</h2>
+                <p class="text-gray-700 mb-6">This plan is a **highly aggressive, protein-centric cut**. The <span id="macro-p-perc"></span>% protein ensures maximum muscle retention while the lower carbs and moderate fats drive significant fat loss.</p>
+                <div class="chart-container h-[350px]">
+                    <canvas id="macroDonutChart"></canvas>
+                </div>
+                <p class="text-sm text-gray-500 mt-4 text-center">Breakdown: P (<span id="macro-p-perc"></span>%) C (<span id="macro-c-perc"></span>%) F (<span id="macro-f-perc"></span>%)</p>
+            </div>
 
+            <div class="lg:col-span-2 card border-t-4 border-t-[#2196F3]">
+                <h2 class="text-2xl font-bold text-[#2196F3] mb-4">Calorie Distribution Across 5 Meals</h2>
+                <p class="text-gray-700 mb-6">Calories are distributed to deliver large protein doses around critical times (morning, post-workout, bedtime), with solid meals supplementing energy from carbs and healthy fats. (Target: <span id="line-chart-total"></span> kcal Total)</p>
+                <div class="chart-container h-[400px] max-w-full">
+                    <canvas id="calorieLineChart"></canvas>
+                </div>
+            </div>
+            
+        </section>
+
+
+<!-- Training Split & Details Section (INTERACTIVE) -->
+        <section id="training-split" class="mb-12">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center border-b-2 pb-2 border-gray-200">🏋️ 7-Day High-Frequency Training Split (PPL-PPL)</h2>
+            <p class="text-gray-700 text-center mb-8">Click any day below to see the specific exercises, sets, and rep ranges designed for classic physique aesthetics (V-taper, wide shoulders, round legs).</p>
+
+            <!-- Interactive Day Tabs -->
+            <div class="grid grid-cols-4 sm:grid-cols-7 gap-4 mb-8">
+                
+                <!-- SAT -->
+                <button id="SAT-PUSH-A" onclick="showWorkout('SAT-PUSH-A')" class="day-tab p-4 text-center rounded-lg shadow-md bg-red-100 border border-red-400">
+                    <div class="font-bold text-lg text-red-700">SAT</div>
+                    <div class="text-sm font-black mt-1">PUSH A</div>
+                </button>
+                
+                <!-- SUN -->
+                <button id="SUN-PULL-A" onclick="showWorkout('SUN-PULL-A')" class="day-tab p-4 text-center rounded-lg shadow-md bg-blue-100 border border-blue-400">
+                    <div class="font-bold text-lg text-blue-700">SUN</div>
+                    <div class="text-sm font-black mt-1">PULL A</div>
+                </button>
+                
+                <!-- MON -->
+                <button id="MON-LEGS-A" onclick="showWorkout('MON-LEGS-A')" class="day-tab p-4 text-center rounded-lg shadow-md bg-green-100 border border-green-400">
+                    <div class="font-bold text-lg text-green-700">MON</div>
+                    <div class="text-sm font-black mt-1">LEGS A</div>
+                </button>
+                
+                <!-- TUE -->
+                <button id="TUE-PUSH-B" onclick="showWorkout('TUE-PUSH-B')" class="day-tab p-4 text-center rounded-lg shadow-md bg-red-100 border border-red-400">
+                    <div class="font-bold text-lg text-red-700">TUE</div>
+                    <div class="text-sm font-black mt-1">PUSH B</div>
+                </button>
+                
+                <!-- WED -->
+                <button id="WED-PULL-B" onclick="showWorkout('WED-PULL-B')" class="day-tab p-4 text-center rounded-lg shadow-md bg-blue-100 border border-blue-400">
+                    <div class="font-bold text-lg text-blue-700">WED</div>
+                    <div class="text-sm font-black mt-1">PULL B</div>
+                </button>
+                
+                <!-- THU (NEW DETAIL) -->
+                <button id="THU-LEGS-B" onclick="showWorkout('THU-LEGS-B')" class="day-tab p-4 text-center rounded-lg shadow-md bg-green-100 border border-green-400">
+                    <div class="font-bold text-lg text-green-700">THU</div>
+                    <div class="text-sm font-black mt-1">LEGS B</div>
+                </button>
+                
+                <!-- FRI -->
+                <button id="FRI-REST" onclick="showWorkout('FRI-REST')" class="day-tab p-4 text-center rounded-lg shadow-md bg-yellow-100 border border-yellow-400">
+                    <div class="font-bold text-lg text-yellow-700">FRI</div>
+                    <div class="text-sm font-black mt-1">REST</div>
+                </button>
+            </div>
+
+            <!-- Workout Details Display Area -->
+            <div id="workoutDetailsContent" class="min-h-[350px] transition-all duration-300">
+                <!-- Content will be injected here by JavaScript -->
+            </div>
+            
+        </section>
+
+
+<!-- AI Tools Section (REMAINS) -->
 <section id="ai-tools" class="mb-12">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center border-b-2 pb-2 border-gray-200">🤖 AI Nutrition Assistant (Gemini-Powered)</h2>
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center border-b-2 pb-2 border-gray-200">🤖 AI Coach Assistant (Gemini-Powered)</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
-                
-
-<div class="card p-6 border-t-4 border-t-[#2196F3] bg-blue-50/50">
+                <div class="card p-6 border-t-4 border-t-[#2196F3] bg-blue-50/50">
                     <h3 class="text-xl font-bold text-[#2196F3] mb-3 flex items-center">✨ Macro Substitution Generator</h3>
                     <p class="text-gray-700 text-sm mb-4">Need to swap out a food item while keeping your macros tight? The AI will suggest a macro-matched, cutting-friendly alternative.</p>
                     <input type="text" id="inputFood" placeholder="e.g., Brown Rice" class="w-full p-2 mb-3 border border-gray-300 rounded-md focus:ring-[#2196F3] focus:border-[#2196F3]">
@@ -562,12 +784,10 @@
                     <div id="substitutionResult" class="mt-4 min-h-[50px]"></div>
                 </div>
 
-                
-
-<div class="card p-6 border-t-4 border-t-[#00C853] bg-green-50/50">
+                <div class="card p-6 border-t-4 border-t-[#00C853] bg-green-50/50">
                     <h3 class="text-xl font-bold text-[#00C853] mb-3 flex items-center">🔬 Scientific Rationale Finder</h3>
                     <p class="text-gray-700 text-sm mb-4">Get a quick, grounded scientific explanation for the principles in this plan. Utilizes real-time research.</p>
-                    <input type="text" id="rationaleTopic" placeholder="e.g., Carb timing vs fat loss" class="w-full p-2 mb-3 border border-gray-300 rounded-md focus:ring-[#00C853] focus:border-[#00C853]">
+                    <input type="text" id="rationaleTopic" placeholder="e.g., Why high protein?" class="w-full p-2 mb-3 border border-gray-300 rounded-md focus:ring-[#00C853] focus:border-[#00C853]">
                     <button id="rationaleButton" onclick="generateRationale()" class="w-full bg-[#00C853] text-white py-2 rounded-md font-semibold hover:bg-green-600 button-shadow">
                         Search Rationale
                     </button>
@@ -576,174 +796,8 @@
             </div>
         </section>
 
-        
 
-<section id="meal-recommendations" class="mb-12">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center border-b-2 pb-2 border-gray-200">🍽️ Sample Meal Plan: Ultra-High Protein Focus</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                
-                
-
-<div class="meal-card border-l-[#FF9800]">
-                    <h3 class="text-lg font-bold text-[#FF9800] mb-2">Meal 1: High-Dose Whey Shake (320 kcal)</h3>
-                    <p class="text-sm text-gray-700 font-semibold">Focus: 64g Pure Protein, Quick Absorb</p>
-                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                        <li>2.6 Scoops Gold Standard Whey (64g Protein)</li>
-                        <li>Mixed with Water</li>
-                        <li>*(Ensure accurate measurement for 64g)*</li>
-                    </ul>
-                </div>
-                
-                
-
-<div class="meal-card border-l-[#00C853]">
-                    <h3 class="text-lg font-bold text-[#00C853] mb-2">Meal 2: Solid Meal 1 (500 kcal)</h3>
-                    <p class="text-sm text-gray-700 font-semibold">Focus: Post-Workout Carbs & Minimal Protein</p>
-                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                        <li>1 Cup Rolled Oats (dry measure)</li>
-                        <li>1 Tbsp Natural Peanut Butter</li>
-                        <li>1 Medium Banana</li>
-                        <li>Water/Black Coffee</li>
-                    </ul>
-                </div>
-                
-                
-
-<div class="meal-card border-l-[#2196F3]">
-                    <h3 class="text-lg font-bold text-[#2196F3] mb-2">Meal 3: High-Dose Whey Shake (320 kcal)</h3>
-                    <p class="text-sm text-gray-700 font-semibold">Focus: 64g Pure Protein, Mid-day Top-up</p>
-                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                        <li>2.6 Scoops Gold Standard Whey (64g Protein)</li>
-                        <li>Mixed with Water</li>
-                        <li>*(Crucial for hitting protein target)*</li>
-                    </ul>
-                </div>
-
-                 
-
-<div class="meal-card border-l-[#03A9F4]">
-                    <h3 class="text-lg font-bold text-[#03A9F4] mb-2">Meal 4: Solid Meal 2 (500 kcal)</h3>
-                    <p class="text-sm text-gray-700 font-semibold">Focus: Healthy Fats, Fiber & Micronutrients</p>
-                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                        <li>1 Small Sweet Potato (approx. 100g)</li>
-                        <li>Large Mixed Green Salad</li>
-                        <li>1.5 Tbsp Olive Oil (for dressing)</li>
-                        <li>1/4 Avocado</li>
-                    </ul>
-                </div>
-                
-                
-
-<div class="meal-card border-l-[#8BC34A]">
-                    <h3 class="text-lg font-bold text-[#8BC34A] mb-2">Meal 5: High-Dose Whey Shake (320 kcal)</h3>
-                    <p class="text-sm text-gray-700 font-semibold">Focus: 64g Pure Protein, Before Bed Anti-Catabolic</p>
-                    <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                        <li>2.6 Scoops Gold Standard Whey (64g Protein)</li>
-                        <li>Mixed with Water</li>
-                        <li>*(Use kitchen scale for accuracy)*</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-
-        <section id="macro-composition" class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-            
-            <div class="lg:col-span-1 card">
-                <h2 class="text-2xl font-bold accent-text mb-4">Macro Composition Overview</h2>
-                <p class="text-gray-700 mb-6">This plan is a **highly aggressive, protein-centric cut**. The <span id="macro-p-perc"></span>% protein ensures maximum muscle retention while the lower carbs and moderate fats drive significant fat loss.</p>
-                <div class="chart-container h-[350px]">
-                    <canvas id="macroDonutChart"></canvas>
-                </div>
-                <p class="text-sm text-gray-500 mt-4 text-center">Breakdown: P (<span id="macro-p-perc"></span>%) C (<span id="macro-c-perc"></span>%) F (<span id="macro-f-perc"></span>%)</p>
-            </div>
-
-            <div class="lg:col-span-2 card">
-                <h2 class="text-2xl font-bold accent-text mb-4">Calorie Distribution Across 5 Meals</h2>
-                <p class="text-gray-700 mb-6">Calories are distributed to deliver large protein doses around critical times (morning, post-workout, bedtime), with solid meals supplementing energy from carbs and healthy fats. (Target: <span id="line-chart-total"></span> kcal Total)</p>
-                <div class="chart-container h-[400px] max-w-full">
-                    <canvas id="calorieLineChart"></canvas>
-                </div>
-            </div>
-            
-        </section>
-        
-        <section id="detailed-analysis" class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-
-            <div class="lg:col-span-1 card">
-                <h2 class="text-2xl font-bold accent-text mb-4">Key Protein Source Breakdown</h2>
-                <p class="text-gray-700 mb-6">**Whey protein accounts for the vast majority** of your daily protein intake, making precise measurement of each shake crucial. Remaining protein comes from whole food sources.</p>
-                <div class="chart-container h-[300px]">
-                    <canvas id="proteinBarChart"></canvas>
-                </div>
-            </div>
-
-            <div class="lg:col-span-2 card">
-                <h2 class="text-2xl font-bold accent-text mb-4">7-Day Classic Physique Training & Nutrient Blueprint</h2>
-                <p class="text-gray-700 mb-6">This blueprint follows your requested **Push (Saturday), Pull (Sunday), Legs (Monday)** split. The 2000 kcal / 215g Protein plan is maintained daily, supporting muscle preservation even with intense training.</p>
-
-                
-
-<div class="day-grid">
-                    
-
-<div class="p-3 bg-red-100 border border-red-400 rounded-lg">
-                        <div class="font-bold text-lg text-red-700">SAT</div>
-                        <div class="text-sm font-semibold mt-1">PUSH</div>
-                        <div class="text-xs text-gray-600">(Chest, Shoulders, Triceps)</div>
-                    </div>
-                    
-
-<div class="p-3 bg-blue-100 border border-blue-400 rounded-lg">
-                        <div class="font-bold text-lg text-blue-700">SUN</div>
-                        <div class="text-sm font-semibold mt-1">PULL</div>
-                        <div class="text-xs text-gray-600">(Back, Biceps, Traps)</div>
-                    </div>
-                    
-
-<div class="p-3 bg-green-100 border border-green-400 rounded-lg">
-                        <div class="font-bold text-lg text-green-700">MON</div>
-                        <div class="text-sm font-semibold mt-1">LEGS</div>
-                        <div class="text-xs text-gray-600">(Quads, Hams, Calves)</div>
-                    </div>
-                    
-
-<div class="p-3 bg-yellow-100 border border-yellow-400 rounded-lg">
-                        <div class="font-bold text-lg text-yellow-700">TUE</div>
-                        <div class="text-sm font-semibold mt-1">Active Rest</div>
-                        <div class="text-xs text-gray-600">(LISS Cardio/Mobility)</div>
-                    </div>
-                    
-
-<div class="p-3 bg-red-100 border border-red-400 rounded-lg">
-                        <div class="font-bold text-lg text-red-700">WED</div>
-                        <div class="text-sm font-semibold mt-1">PUSH</div>
-                        <div class="text-xs text-gray-600">(Chest, Shoulders, Triceps)</div>
-                    </div>
-                    
-
-<div class="p-3 bg-blue-100 border border-blue-400 rounded-lg">
-                        <div class="font-bold text-lg text-blue-700">THU</div>
-                        <div class="text-sm font-semibold mt-1">PULL</div>
-                        <div class="text-xs text-gray-600">(Back, Biceps, Traps)</div>
-                    </div>
-                    
-
-<div class="p-3 bg-green-100 border border-green-400 rounded-lg">
-                        <div class="font-bold text-lg text-green-700">FRI</div>
-                        <div class="text-sm font-semibold mt-1">LEGS</div>
-                        <div class="text-xs text-gray-600">(Quads, Hams, Calves)</div>
-                    </div>
-                </div>
-                
-                <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h3 class="font-bold text-gray-800">Timing Note:</h3>
-                    <p class="text-sm text-gray-600">The 2000 kcal / 215g Protein plan is consistent daily. For optimal nutrient timing, try to place **Solid Meal 1 (Oats, PB, Banana)** around your main workout session to fuel performance or kickstart recovery.</p>
-                </div>
-            </div>
-            
-        </section>
-
+<!-- Principles Section -->
         <section id="principles" class="mb-12">
             <h2 class="text-3xl font-bold accent-text mb-6 text-center">Non-Negotiable Principles of the Cut</h2>
             
